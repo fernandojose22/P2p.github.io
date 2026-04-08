@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -6,84 +7,207 @@
 <title>FP2P · Live</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#03060e;--s1:#080f1c;--s2:#0c1526;--br:#182438;--br2:#1e2e45;--cyan:#00cfff;--gold:#ffb400;--green:#00e07a;--red:#ff3b5c;--text:#dce8f8;--dim:#506a8a;--dim2:#243348}
-html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden}
-#ticker{position:sticky;top:0;z-index:200;background:rgba(3,6,14,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--br);display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;height:52px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#03060e;--s1:#080f1c;--s2:#0c1526;--s3:#111d30;
+  --br:#182438;--br2:#1e2e45;
+  --cyan:#00cfff;--gold:#ffb400;--green:#00e07a;--red:#ff3b5c;
+  --purple:#c084fc;--text:#dce8f8;--dim:#506a8a;--dim2:#243348;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 70% 50% at 0% 0%,rgba(0,207,255,.05),transparent 55%),
+             radial-gradient(ellipse 50% 60% at 100% 100%,rgba(255,180,0,.04),transparent 55%)}
+
+/* ── TICKER ── */
+#ticker{position:sticky;top:0;z-index:200;background:rgba(3,6,14,.97);
+backdrop-filter:blur(20px);border-bottom:1px solid var(–br);
+display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;height:52px}
 #ticker::-webkit-scrollbar{display:none}
-.tk{display:flex;flex-direction:column;justify-content:center;padding:0 13px;border-right:1px solid var(--br);flex:0 0 auto;min-width:110px}
-.tk-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
-.tk-val{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;white-space:nowrap;transition:color .3s}
-.tk-sub{font-size:8px;color:var(--dim);margin-top:1px}
+.tk{display:flex;flex-direction:column;justify-content:center;
+padding:0 12px;border-right:1px solid var(–br);flex:0 0 auto;min-width:100px}
+.tk-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(–dim);
+text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
+.tk-val{font-family:‘IBM Plex Mono’,monospace;font-size:14px;font-weight:600;white-space:nowrap}
+.tk-sub{font-size:7px;color:var(–dim);margin-top:1px}
+#tk-time{margin-left:auto;padding:0 10px;font-size:9px;color:var(–dim);
+font-family:‘IBM Plex Mono’,monospace;flex:0 0 auto}
+
+/* DOTS */
 .dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
-.dot.ok{background:var(--green);animation:pulse 1.5s infinite}
-.dot.err{background:var(--red)}
-.dot.load{background:var(--gold);animation:pulse .8s infinite}
-@keyframes pulse{50%{opacity:.2;transform:scale(.55)}}
-#tk-time{margin-left:auto;padding:0 12px;font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;flex:0 0 auto}
-#app{max-width:820px;margin:0 auto;padding:12px}
+.dot.ok{background:var(–green);animation:pulse 1.5s infinite}
+.dot.err{background:var(–red)}
+.dot.load{background:var(–gold);animation:pulse .7s infinite}
+@keyframes pulse{50%{opacity:.2;transform:scale(.5)}}
+
+/* ── SHELL ── */
+#app{max-width:820px;margin:0 auto;padding:12px;position:relative;z-index:1}
 .logo-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.logo{font-size:15px;font-weight:700;color:var(--cyan)}
-.logo b{color:var(--text)}
-.badge{font-size:8px;letter-spacing:.1em;border:1px solid var(--br2);border-radius:20px;padding:3px 9px;color:var(--dim);font-weight:600}
+.logo{font-size:15px;font-weight:700;color:var(–cyan)}
+.logo b{color:var(–text)}
+.badge{font-size:8px;letter-spacing:.1em;border:1px solid var(–br2);
+border-radius:20px;padding:3px 9px;color:var(–dim);font-weight:600}
+
+/* ── MAIN TABS ── */
 .tabs{display:flex;gap:4px;margin-bottom:14px}
-.tab{flex:1;padding:9px 6px;border-radius:9px;border:1px solid var(--br);background:var(--s1);color:var(--dim);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
-.tab.on{background:var(--cyan);color:#03060e;border-color:var(--cyan)}
-.view{display:none}.view.on{display:block}
-.card{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px;margin-bottom:12px}
-.ctitle{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.ctitle::before{content:'';width:3px;height:10px;border-radius:2px;background:var(--cyan);flex-shrink:0}
-.stabs{display:flex;gap:4px;margin-bottom:14px}
-.stab{flex:1;padding:8px 6px;border-radius:8px;border:1px solid var(--br);background:none;color:var(--dim);font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
-.stab.on{background:rgba(0,207,255,.1);color:var(--cyan);border-color:rgba(0,207,255,.3)}
-.panel{display:none}.panel.on{display:block}
+.tab{flex:1;padding:8px 4px;border-radius:9px;border:1px solid var(–br);
+background:var(–s1);color:var(–dim);font-family:inherit;
+font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.tab.on{background:var(–cyan);color:#03060e;border-color:var(–cyan)}
+
+.view{display:none}.view.on{display:block;animation:up .2s ease}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── CARDS ── */
+.card{background:var(–s1);border:1px solid var(–br);border-radius:12px;
+padding:14px;margin-bottom:12px}
+.ctitle{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(–dim);
+text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.ctitle::before{content:’’;width:3px;height:10px;border-radius:2px;background:var(–cyan);flex-shrink:0}
+
+/* ── INPUTS ── */
 .row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:80px}
-.field label{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(--dim);text-transform:uppercase}
-.field input{background:var(--s2);border:1px solid var(--br);border-radius:8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:10px 11px;outline:none;width:100%;-webkit-appearance:none;appearance:none;transition:border-color .15s}
-.field input:focus{border-color:var(--cyan)}
-.field input::placeholder{color:var(--dim2)}
-.note{font-size:9px;color:var(--dim);background:rgba(255,180,0,.04);border:1px solid rgba(255,180,0,.15);border-radius:7px;padding:8px 11px;margin-bottom:10px;line-height:1.7}
-.note strong{color:var(--gold)}
-.autobox{background:rgba(0,207,255,.04);border:1px solid rgba(0,207,255,.2);border-radius:8px;padding:10px 13px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.ab-lbl{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(--dim);text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
-.ab-sub{font-size:8px;color:var(--dim2)}
-.ab-val{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--cyan);font-weight:600}
-.res{background:var(--s2);border:1px solid var(--br2);border-radius:10px;overflow:hidden}
-.rr{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:1px solid var(--br)}
+.field label{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(–dim);text-transform:uppercase}
+.field input,.field select{
+background:var(–s2);border:1px solid var(–br);border-radius:8px;
+color:var(–text);font-family:‘IBM Plex Mono’,monospace;font-size:14px;
+padding:10px 11px;outline:none;width:100%;-webkit-appearance:none;appearance:none;
+transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(–cyan);background:var(–s3)}
+.field input::placeholder{color:var(–dim2)}
+.field select option{background:var(–s1)}
+
+/* ── SUB TABS ── */
+.stabs{display:flex;gap:4px;margin-bottom:14px}
+.stab{flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(–br);
+background:none;color:var(–dim);font-family:inherit;font-size:10px;
+font-weight:600;cursor:pointer;transition:all .2s}
+.stab.on{background:rgba(0,207,255,.1);color:var(–cyan);border-color:rgba(0,207,255,.3)}
+.panel{display:none}.panel.on{display:block}
+
+/* ── NOTE ── */
+.note{font-size:9px;color:var(–dim);background:rgba(255,180,0,.04);
+border:1px solid rgba(255,180,0,.15);border-radius:7px;
+padding:8px 11px;margin-bottom:10px;line-height:1.7}
+.note strong{color:var(–gold)}
+
+/* ── AUTOBOX ── */
+.autobox{background:rgba(0,207,255,.04);border:1px solid rgba(0,207,255,.2);
+border-radius:8px;padding:10px 12px;margin-bottom:10px;
+display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ab-lbl{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(–dim);
+text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
+.ab-sub{font-size:8px;color:var(–dim2)}
+.ab-val{font-family:‘IBM Plex Mono’,monospace;font-size:15px;color:var(–cyan);font-weight:600}
+
+/* ── RESULT ── */
+.res{background:var(–s2);border:1px solid var(–br2);border-radius:10px;overflow:hidden}
+.rr{display:flex;justify-content:space-between;align-items:center;
+padding:10px 13px;border-bottom:1px solid var(–br)}
 .rr:last-child{border-bottom:none;background:rgba(0,207,255,.05)}
-.rl{font-size:10px;color:var(--dim);line-height:1.4}
-.rv{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;text-align:right;white-space:nowrap}
-.rv.cyan{color:var(--cyan)}.rv.green{color:var(--green)}.rv.red{color:var(--red)}.rv.dim{color:var(--dim)}
-.rv.big{font-size:17px;font-weight:700;color:var(--cyan)}
-.step-sep{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--dim2);text-transform:uppercase;padding:4px 13px;background:rgba(255,255,255,.02);border-top:1px solid var(--br)}
-.chart-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.rl{font-size:10px;color:var(–dim);line-height:1.4}
+.rv{font-family:‘IBM Plex Mono’,monospace;font-size:13px;font-weight:500;
+text-align:right;white-space:nowrap}
+.rv.cyan{color:var(–cyan)}.rv.green{color:var(–green)}
+.rv.red{color:var(–red)}.rv.gold{color:var(–gold)}.rv.dim{color:var(–dim)}
+.rv.big{font-size:17px;font-weight:700;color:var(–cyan)}
+.sep{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(–dim2);
+text-transform:uppercase;padding:4px 13px;
+background:rgba(255,255,255,.02);border-top:1px solid var(–br)}
+
+/* ── BOT OPORTUNIDADES ── */
+#bot-config{background:var(–s1);border:1px solid var(–br);border-radius:12px;
+padding:14px;margin-bottom:12px}
+
+/* ALERT CARD */
+.alert-wrap{margin-bottom:10px;min-height:80px}
+.opp-card{border-radius:12px;padding:14px;margin-bottom:8px;
+border:1px solid;animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.opp-card.green{background:rgba(0,230,122,.06);border-color:rgba(0,230,122,.25)}
+.opp-card.red-card{background:rgba(255,59,92,.06);border-color:rgba(255,59,92,.25)}
+.opp-header{display:flex;align-items:center;justify-content:space-between;
+margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.opp-badge{font-size:9px;font-weight:700;letter-spacing:.06em;
+padding:3px 10px;border-radius:20px}
+.opp-badge.green{background:rgba(0,230,122,.15);color:var(–green);border:1px solid rgba(0,230,122,.3)}
+.opp-badge.red-card{background:rgba(255,59,92,.15);color:var(–red);border:1px solid rgba(255,59,92,.3)}
+.opp-bank{font-size:9px;color:var(–dim);font-weight:600}
+.opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.opp-item{background:rgba(255,255,255,.03);border-radius:7px;padding:7px 9px}
+.opp-item-lbl{font-size:8px;color:var(–dim);margin-bottom:2px;letter-spacing:.06em;text-transform:uppercase}
+.opp-item-val{font-family:‘IBM Plex Mono’,monospace;font-size:12px;font-weight:600}
+.opp-item-val.green{color:var(–green)}.opp-item-val.cyan{color:var(–cyan)}
+.opp-item-val.gold{color:var(–gold)}.opp-item-val.red{color:var(–red)}
+.opp-profit{background:rgba(0,207,255,.06);border:1px solid rgba(0,207,255,.2);
+border-radius:8px;padding:9px 12px;display:flex;
+justify-content:space-between;align-items:center;margin-bottom:6px}
+.opp-profit-lbl{font-size:9px;color:var(–dim)}
+.opp-profit-val{font-family:‘IBM Plex Mono’,monospace;font-size:15px;
+font-weight:700;color:var(–cyan)}
+.opp-ts{font-size:8px;color:var(–dim2);text-align:right}
+
+.no-opp{text-align:center;padding:28px;color:var(–dim);font-size:11px;
+background:var(–s2);border-radius:10px;border:1px solid var(–br)}
+
+/* Countdown ring */
+#countdown-wrap{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+#countdown-bar{flex:1;height:3px;background:var(–br);border-radius:99px;overflow:hidden}
+#countdown-fill{height:100%;background:var(–cyan);border-radius:99px;
+transition:width .1s linear;width:100%}
+#countdown-txt{font-size:9px;color:var(–dim);font-family:‘IBM Plex Mono’,monospace;
+white-space:nowrap;min-width:48px;text-align:right}
+
+/* ── CHART ── */
+.chart-bar{display:flex;justify-content:space-between;align-items:center;
+margin-bottom:10px;gap:8px;flex-wrap:wrap}
 .pills{display:flex;gap:3px}
-.pill{padding:5px 10px;border-radius:6px;border:1px solid var(--br);background:none;color:var(--dim);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
-.pill.on{background:var(--s2);color:var(--text);border-color:var(--br2)}
-.pill.pair.on{background:rgba(0,207,255,.1);color:var(--cyan);border-color:rgba(0,207,255,.3)}
-#ci{font-size:9px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(--dim)}
-#chartWrap{width:100%;height:260px;background:var(--s1);border:1px solid var(--br);border-radius:10px;overflow:hidden;position:relative;margin-bottom:10px}
+.pill{padding:5px 10px;border-radius:6px;border:1px solid var(–br);background:none;
+color:var(–dim);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.pill.on{background:var(–s3);color:var(–text);border-color:var(–br2)}
+.pill.pair.on{background:rgba(0,207,255,.1);color:var(–cyan);border-color:rgba(0,207,255,.3)}
+#ci{font-size:9px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(–dim)}
+#chartWrap{width:100%;height:240px;background:var(–s1);border:1px solid var(–br);
+border-radius:10px;overflow:hidden;position:relative;margin-bottom:10px}
 #cv{display:block;position:absolute;top:0;left:0}
-.ch-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
-.ch-hint p{font-size:11px;color:var(--dim);line-height:1.7}
-.ch-hint small{font-size:9px;color:var(--dim2)}
-#sbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;font-size:9px}
-.sc{background:var(--s2);border:1px solid var(--br);border-radius:20px;padding:3px 10px;display:flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;color:var(--dim)}
-.sc.ok{border-color:rgba(0,230,122,.2);color:var(--green)}
-.sc.err{border-color:rgba(255,59,92,.2);color:var(--red)}
+.ch-hint{position:absolute;inset:0;display:flex;flex-direction:column;
+align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px;pointer-events:none}
+.ch-hint p{font-size:11px;color:var(–dim);line-height:1.7}
+.ch-hint small{font-size:9px;color:var(–dim2)}
+
+/* ZONAS */
 .zone-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-.zone-inp{background:var(--s2);border:1px solid var(--br);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:7px 10px;outline:none;width:100px;-webkit-appearance:none;transition:border-color .15s}
-.zone-inp:focus{border-color:var(--gold)}
-.zone-btn{padding:7px 13px;border-radius:6px;border:1px solid rgba(255,180,0,.3);background:rgba(255,180,0,.07);color:var(--gold);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
+.zone-inp{background:var(–s2);border:1px solid var(–br);border-radius:6px;
+color:var(–text);font-family:‘IBM Plex Mono’,monospace;font-size:12px;
+padding:7px 10px;outline:none;width:95px;-webkit-appearance:none}
+.zone-inp:focus{border-color:var(–gold)}
+.zone-btn{padding:7px 12px;border-radius:6px;border:1px solid rgba(255,180,0,.3);
+background:rgba(255,180,0,.07);color:var(–gold);font-size:10px;
+font-weight:700;cursor:pointer;font-family:inherit}
 .chips{display:flex;gap:5px;flex-wrap:wrap;min-height:22px;margin-top:4px}
-.chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,180,0,.07);border:1px solid rgba(255,180,0,.2);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--gold);font-family:'IBM Plex Mono',monospace}
-.chip-x{cursor:pointer;color:var(--dim);padding-left:2px}
-.zone-tip{font-size:9px;color:var(--dim);line-height:1.7;margin-top:8px}
-.upd-bar{font-size:9px;color:var(--dim);margin-bottom:10px;display:flex;justify-content:space-between}
+.chip{display:inline-flex;align-items:center;gap:5px;
+background:rgba(255,180,0,.07);border:1px solid rgba(255,180,0,.2);
+border-radius:20px;padding:3px 10px;font-size:10px;
+color:var(–gold);font-family:‘IBM Plex Mono’,monospace}
+.chip-x{cursor:pointer;color:var(–dim);padding-left:2px}
+.chip-x:hover{color:var(–red)}
+.zone-tip{font-size:9px;color:var(–dim);line-height:1.7;margin-top:8px}
+
+/* STATUS BAR */
+#sbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:9px}
+.sc{background:var(–s2);border:1px solid var(–br);border-radius:20px;
+padding:3px 10px;display:flex;align-items:center;gap:4px;
+font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
+.sc.ok{border-color:rgba(0,230,122,.2);color:var(–green)}
+.sc.err{border-color:rgba(255,59,92,.2);color:var(–red)}
 </style>
+
 </head>
 <body>
+
+<!-- ═══ TICKER ═══ -->
 
 <div id="ticker">
   <div class="tk">
@@ -94,15 +218,17 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'IB
   <div class="tk">
     <div class="tk-lbl"><span class="dot load" id="d-pen"></span>USDT P2P</div>
     <div class="tk-val" style="color:var(--gold)" id="tk-pen">…</div>
-    <div class="tk-sub">PEN · Binance P2P</div>
+    <div class="tk-sub">PEN · P2P</div>
   </div>
   <div class="tk">
     <div class="tk-lbl"><span class="dot load" id="d-ves"></span>USDT P2P</div>
     <div class="tk-val" style="color:var(--green)" id="tk-ves">…</div>
-    <div class="tk-sub">VES · Binance P2P</div>
+    <div class="tk-sub">VES · P2P</div>
   </div>
   <div id="tk-time">—</div>
 </div>
+
+<!-- ═══ APP ═══ -->
 
 <div id="app">
   <div class="logo-row">
@@ -111,324 +237,776 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'IB
   </div>
 
   <div class="tabs">
-    <button class="tab on" onclick="goTab('calc',this)">📊 Calculadora</button>
-    <button class="tab" onclick="goTab('chart',this)">📈 Mercado</button>
+    <button class="tab on"  onclick="goTab('calc',this)">📊 Calc</button>
+    <button class="tab"     onclick="goTab('bot',this)">🤖 Bot P2P</button>
+    <button class="tab"     onclick="goTab('chart',this)">📈 Mercado</button>
   </div>
 
-  <!-- CALCULADORA -->
+  <!-- ═══════════ CALCULADORA ═══════════ -->
+
   <div id="v-calc" class="view on">
     <div class="stabs">
-      <button class="stab on" onclick="goPanel('st',this)">Estables · USDT</button>
-      <button class="stab" onclick="goPanel('btc',this)">BTC Loop</button>
+      <button class="stab on" onclick="goPanel('st',this)">Estables</button>
+      <button class="stab"    onclick="goPanel('btc',this)">BTC Loop</button>
     </div>
 
-    <!-- ESTABLES -->
-    <div id="p-st" class="panel on">
-      <div class="card">
-        <div class="ctitle">Arbitraje Estable</div>
-        <div class="note">
-          <strong>Comisión P2P en compra Y venta.</strong><br>
-          TC efectivo compra = precio × (1+com%) → pagas más.<br>
-          TC efectivo venta = precio × (1−com%) → cobras menos.
-        </div>
-        <div class="row">
-          <div class="field"><label>TC Compra (PEN/USDT)</label><input type="number" id="s-buy" placeholder="3.45" step="0.001" inputmode="decimal" oninput="calcS()"></div>
-          <div class="field"><label>TC Venta (PEN/USDT)</label><input type="number" id="s-sell" placeholder="3.52" step="0.001" inputmode="decimal" oninput="calcS()"></div>
-          <div class="field" style="max-width:90px"><label>Com. P2P %</label><input type="number" id="s-com" value="0.1" step="0.01" inputmode="decimal" oninput="calcS()"></div>
-        </div>
-        <div class="res">
-          <div class="step-sep">Costos reales</div>
-          <div class="rr"><span class="rl">TC compra efectivo (+com.)</span><span class="rv dim" id="s-r0">—</span></div>
-          <div class="rr"><span class="rl">TC venta efectivo (−com.)</span><span class="rv dim" id="s-r00">—</span></div>
-          <div class="step-sep">Resultado</div>
-          <div class="rr"><span class="rl">Spread neto</span><span class="rv" id="s-r1">—</span></div>
-          <div class="rr"><span class="rl">USDT ganados por cada 100 USDT</span><span class="rv" id="s-r3">—</span></div>
-          <div class="rr"><span class="rl">✦ Margen neto</span><span class="rv big" id="s-r4">—</span></div>
-        </div>
+```
+<!-- ─── ESTABLES ─── -->
+<div id="p-st" class="panel on">
+  <div class="card">
+    <div class="ctitle">Arbitraje Estable — PEN / VES</div>
+    <div class="note">
+      <strong>Comisión P2P en compra Y venta.</strong><br>
+      TC efectivo compra = precio × (1+com%) → pagas más.<br>
+      TC efectivo venta = precio × (1−com%) → cobras menos.
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Moneda Fiat</label>
+        <select id="s-fiat" onchange="calcS()">
+          <option value="VES">🇻🇪 VES (Bolívares)</option>
+          <option value="PEN">🇵🇪 PEN (Soles)</option>
+        </select>
+      </div>
+      <div class="field" style="max-width:90px">
+        <label>Com. P2P %</label>
+        <input type="number" id="s-com" value="0.1" step="0.01" inputmode="decimal" oninput="calcS()">
       </div>
     </div>
-
-    <!-- BTC LOOP -->
-    <div id="p-btc" class="panel">
-      <div class="card">
-        <div class="ctitle">BTC Loop</div>
-        <div class="note">
-          <strong>① P2P compra BTC</strong> → +com. P2P entrada<br>
-          <strong>② Spot venta BTC</strong> → −0.1% fijo Binance<br>
-          <strong>③ P2P venta USDT</strong> → −com. P2P salida<br>
-          Ganancia siempre en USDT.
-        </div>
-        <div class="autobox">
-          <div>
-            <div class="ab-lbl"><span class="dot load" id="d-btc2"></span>BTC Spot · automático</div>
-            <div class="ab-sub" id="btc-src2">Coinbase · c/30s</div>
-          </div>
-          <div class="ab-val" id="v-spot">Cargando…</div>
-        </div>
-        <div class="row">
-          <div class="field"><label>Compré BTC a (PEN/BTC)</label><input type="number" id="v-buy" placeholder="344000" step="100" inputmode="decimal" oninput="calcV()"></div>
-          <div class="field"><label>Vendo USDT a (PEN/USDT)</label><input type="number" id="v-sell" placeholder="3.51" step="0.001" inputmode="decimal" oninput="calcV()"></div>
-          <div class="field" style="max-width:90px"><label>Com. P2P %</label><input type="number" id="v-com" value="0.1" step="0.01" inputmode="decimal" oninput="calcV()"></div>
-        </div>
-        <div class="res">
-          <div class="step-sep">① Compra BTC en P2P</div>
-          <div class="rr"><span class="rl">Precio BTC mercado (Spot × TC)</span><span class="rv dim" id="v-r0">—</span></div>
-          <div class="rr"><span class="rl">Lo que pagaste (+com. P2P entrada)</span><span class="rv dim" id="v-r1">—</span></div>
-          <div class="rr"><span class="rl">TC efectivo compra (PEN/USD)</span><span class="rv cyan" id="v-r2">—</span></div>
-          <div class="rr"><span class="rl">% del precio de mercado que pagaste</span><span class="rv" id="v-r3">—</span></div>
-          <div class="step-sep">② Venta BTC en Spot (−0.1% fijo)</div>
-          <div class="rr"><span class="rl">USDT recibidos en Spot</span><span class="rv cyan" id="v-r4">—</span></div>
-          <div class="step-sep">③ Venta USDT en P2P</div>
-          <div class="rr"><span class="rl">PEN de vuelta (−com. P2P salida)</span><span class="rv dim" id="v-r5">—</span></div>
-          <div class="step-sep">Resultado final</div>
-          <div class="rr"><span class="rl">Ganancia bruta PEN</span><span class="rv" id="v-r6">—</span></div>
-          <div class="rr"><span class="rl">USDT ganados netos</span><span class="rv" id="v-r7">—</span></div>
-          <div class="rr"><span class="rl">Inversión equiv. USDT</span><span class="rv dim" id="v-r8">—</span></div>
-          <div class="rr"><span class="rl">✦ Margen neto sobre inversión (USDT)</span><span class="rv big" id="v-r9">—</span></div>
-        </div>
+    <div class="row">
+      <div class="field">
+        <label>TC Compra</label>
+        <input type="number" id="s-buy"  placeholder="620" step="0.001" inputmode="decimal" oninput="calcS()">
+      </div>
+      <div class="field">
+        <label>TC Venta</label>
+        <input type="number" id="s-sell" placeholder="625" step="0.001" inputmode="decimal" oninput="calcS()">
       </div>
     </div>
-  </div>
-
-  <!-- GRÁFICO -->
-  <div id="v-chart" class="view">
-    <div class="chart-bar">
-      <div class="pills" id="pair-pills">
-        <button class="pill pair on" onclick="setPair('PEN',this)">PEN/USDT</button>
-        <button class="pill pair" onclick="setPair('VES',this)">VES/USDT</button>
-      </div>
-      <div class="pills" id="tf-pills">
-        <button class="pill on" onclick="setTF(1,this)">1H</button>
-        <button class="pill" onclick="setTF(4,this)">4H</button>
-        <button class="pill" onclick="setTF(24,this)">1D</button>
-        <button class="pill" onclick="setTF(0,this)">Todo</button>
-      </div>
-    </div>
-    <div id="ci"><span id="ci-label">PEN/USDT · 1H</span><span id="ci-pts" style="color:var(--dim2)">—</span></div>
-    <div id="chartWrap">
-      <canvas id="cv"></canvas>
-      <div class="ch-hint" id="ch-hint">
-        <p id="hint-msg">📡 Obteniendo precios P2P…</p>
-        <small>El gráfico se construye solo con cada actualización (60s).</small>
-      </div>
-    </div>
-    <div id="sbar">
-      <div class="sc" id="sc-pen"><span class="dot load" id="d-sc-pen"></span><span id="sc-pen-txt">PEN: —</span></div>
-      <div class="sc" id="sc-ves"><span class="dot load" id="d-sc-ves"></span><span id="sc-ves-txt">VES: —</span></div>
-      <span id="sbar-upd" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace">—</span>
-    </div>
-    <div class="card">
-      <div class="ctitle">Soporte P2P <span style="color:var(--gold);font-size:9px">· MODO BALLENA</span></div>
-      <div class="zone-row">
-        <input class="zone-inp" type="number" id="zone-in" placeholder="3.480" step="0.001" inputmode="decimal">
-        <button class="zone-btn" onclick="addZone()">➕ Marcar zona</button>
-      </div>
-      <div class="chips" id="chips"></div>
-      <div class="zone-tip">Marca los precios donde la competencia acumula anuncios.<br>Las líneas <span style="color:var(--gold)">doradas</span> te dicen si poner tu oferta arriba o abajo del bloque.</div>
+    <div class="res">
+      <div class="sep">Costos reales</div>
+      <div class="rr"><span class="rl">TC compra efectivo (+com.)</span><span class="rv dim" id="s-r0">—</span></div>
+      <div class="rr"><span class="rl">TC venta efectivo (−com.)</span><span class="rv dim" id="s-r00">—</span></div>
+      <div class="sep">Resultado</div>
+      <div class="rr"><span class="rl">Spread neto</span><span class="rv" id="s-r1">—</span></div>
+      <div class="rr"><span class="rl">USDT ganados por cada 100 USDT</span><span class="rv" id="s-r3">—</span></div>
+      <div class="rr"><span class="rl">✦ Margen neto</span><span class="rv big" id="s-r4">—</span></div>
     </div>
   </div>
 </div>
 
+<!-- ─── BTC LOOP ─── -->
+<div id="p-btc" class="panel">
+  <div class="card">
+    <div class="ctitle">BTC Loop</div>
+    <div class="note">
+      <strong>① P2P compra BTC</strong> → +com. P2P entrada<br>
+      <strong>② Spot venta BTC</strong> → −0.1% fijo Binance<br>
+      <strong>③ P2P venta USDT</strong> → −com. P2P salida<br>
+      Ganancia siempre en USDT.
+    </div>
+    <div class="autobox">
+      <div>
+        <div class="ab-lbl"><span class="dot load" id="d-btc2"></span>BTC Spot · automático</div>
+        <div class="ab-sub" id="btc-src2">cargando…</div>
+      </div>
+      <div class="ab-val" id="v-spot">—</div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Moneda Fiat</label>
+        <select id="v-fiat" onchange="calcV()">
+          <option value="VES">🇻🇪 VES</option>
+          <option value="PEN">🇵🇪 PEN</option>
+        </select>
+      </div>
+      <div class="field" style="max-width:90px">
+        <label>Com. P2P %</label>
+        <input type="number" id="v-com" value="0.1" step="0.01" inputmode="decimal" oninput="calcV()">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Compré BTC a (Fiat/BTC)</label>
+        <input type="number" id="v-buy"  placeholder="229000" step="100" inputmode="decimal" oninput="calcV()">
+      </div>
+      <div class="field">
+        <label>Vendo USDT a (Fiat/USDT)</label>
+        <input type="number" id="v-sell" placeholder="625" step="0.001" inputmode="decimal" oninput="calcV()">
+      </div>
+    </div>
+    <div class="res">
+      <div class="sep">① Compra BTC en P2P</div>
+      <div class="rr"><span class="rl">Precio BTC mercado (Spot × TC)</span><span class="rv dim" id="v-r0">—</span></div>
+      <div class="rr"><span class="rl">Lo que pagaste (+com. P2P)</span><span class="rv dim" id="v-r1">—</span></div>
+      <div class="rr"><span class="rl">TC efectivo compra (Fiat/USD)</span><span class="rv cyan" id="v-r2">—</span></div>
+      <div class="rr"><span class="rl">% del precio de mercado</span><span class="rv" id="v-r3">—</span></div>
+      <div class="sep">② Venta BTC en Spot (−0.1%)</div>
+      <div class="rr"><span class="rl">USDT recibidos en Spot</span><span class="rv cyan" id="v-r4">—</span></div>
+      <div class="sep">③ Venta USDT en P2P</div>
+      <div class="rr"><span class="rl">Fiat de vuelta (−com. P2P)</span><span class="rv dim" id="v-r5">—</span></div>
+      <div class="sep">Resultado final</div>
+      <div class="rr"><span class="rl">Ganancia bruta Fiat</span><span class="rv" id="v-r6">—</span></div>
+      <div class="rr"><span class="rl">USDT ganados netos</span><span class="rv" id="v-r7">—</span></div>
+      <div class="rr"><span class="rl">Inversión equiv. USDT</span><span class="rv dim" id="v-r8">—</span></div>
+      <div class="rr"><span class="rl">✦ Margen neto (USDT)</span><span class="rv big" id="v-r9">—</span></div>
+    </div>
+  </div>
+</div>
+```
+
+  </div><!-- /calc -->
+
+  <!-- ═══════════ BOT P2P ═══════════ -->
+
+  <div id="v-bot" class="view">
+
+```
+<!-- CONFIGURACIÓN -->
+<div id="bot-config" class="card">
+  <div class="ctitle">Configuración del Bot</div>
+  <div class="row">
+    <div class="field">
+      <label>Capital disponible (USDT)</label>
+      <input type="number" id="bot-capital" placeholder="1300" step="10"
+        inputmode="decimal" value="1300" oninput="saveCfg()">
+    </div>
+    <div class="field">
+      <label>Moneda Fiat</label>
+      <select id="bot-fiat" onchange="saveCfg()">
+        <option value="VES">🇻🇪 VES · Bolívares</option>
+        <option value="PEN">🇵🇪 PEN · Soles</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label>Método de Pago</label>
+      <select id="bot-bank" onchange="saveCfg()">
+        <optgroup label="Venezuela">
+          <option value="Banesco" selected>Banesco</option>
+          <option value="Bancamiga">Bancamiga</option>
+          <option value="PagoMovil">Pago Móvil</option>
+          <option value="Mercantil">Mercantil</option>
+          <option value="Provincial">Provincial</option>
+        </optgroup>
+        <optgroup label="Perú">
+          <option value="CreditBankofPeru">BCP</option>
+          <option value="Yape">Yape</option>
+          <option value="Interbank">Interbank</option>
+          <option value="ScotiabankPeru">Scotiabank</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="field" style="max-width:90px">
+      <label>Com. Maker %</label>
+      <input type="number" id="bot-fee" value="0.20" step="0.01"
+        inputmode="decimal" oninput="saveCfg()">
+    </div>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label>Lote recompra (Fiat)</label>
+      <input type="number" id="bot-rebuy" placeholder="30000" step="1000"
+        inputmode="decimal" value="30000" oninput="saveCfg()">
+    </div>
+    <div class="field" style="max-width:90px">
+      <label>Intervalo (seg)</label>
+      <input type="number" id="bot-interval" value="10" step="5" min="10"
+        inputmode="decimal" oninput="saveCfg()">
+    </div>
+  </div>
+</div>
+
+<!-- COUNTDOWN -->
+<div id="countdown-wrap">
+  <div id="countdown-bar"><div id="countdown-fill"></div></div>
+  <div id="countdown-txt">—</div>
+</div>
+
+<!-- ALERTAS -->
+<div class="alert-wrap" id="bot-alerts">
+  <div class="no-opp">🤖 Iniciando bot… toca en la pestaña para comenzar</div>
+</div>
+
+<!-- STATUS -->
+<div id="sbar">
+  <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-bot-txt">Iniciando…</span></div>
+  <span id="sbar-cycles" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
+</div>
+```
+
+  </div><!-- /bot -->
+
+  <!-- ═══════════ GRÁFICO ═══════════ -->
+
+  <div id="v-chart" class="view">
+    <div class="chart-bar">
+      <div class="pills" id="pair-pills">
+        <button class="pill pair on" onclick="setPair('PEN',this)">PEN/USDT</button>
+        <button class="pill pair"    onclick="setPair('VES',this)">VES/USDT</button>
+      </div>
+      <div class="pills" id="tf-pills">
+        <button class="pill on" onclick="setTF(1,this)">1H</button>
+        <button class="pill"    onclick="setTF(4,this)">4H</button>
+        <button class="pill"    onclick="setTF(24,this)">1D</button>
+        <button class="pill"    onclick="setTF(0,this)">Todo</button>
+      </div>
+    </div>
+    <div id="ci">
+      <span id="ci-label">PEN/USDT · 1H</span>
+      <span id="ci-pts" style="color:var(--dim2)">—</span>
+    </div>
+    <div id="chartWrap">
+      <canvas id="cv"></canvas>
+      <div class="ch-hint" id="ch-hint">
+        <p>📡 Acumulando datos de mercado…</p>
+        <small>El gráfico se construye con cada actualización P2P.</small>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Soporte P2P <span style="color:var(--gold);font-size:9px">· MODO BALLENA</span></div>
+      <div class="zone-row">
+        <input class="zone-inp" type="number" id="zone-in" placeholder="620" step="0.001" inputmode="decimal">
+        <button class="zone-btn" onclick="addZone()">➕ Marcar zona</button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="zone-tip">
+        Marca los precios donde la competencia acumula anuncios.<br>
+        Las líneas <span style="color:var(--gold)">doradas</span> te dicen si poner tu oferta arriba o abajo del bloque.
+      </div>
+    </div>
+  </div><!-- /chart -->
+</div><!-- /app -->
+
 <script>
-const ST={btc:null,p2p:{PEN:null,VES:null},pair:'PEN',tfH:1,hist:ls('fp2p_hx',{}),zones:ls('fp2p_zx',{}),nextUpd:null};
+/* ════════════════════════════════════════
+   ESTADO
+════════════════════════════════════════ */
+const ST = {
+  btc    : null,
+  p2p    : { PEN: null, VES: null },
+  pair   : 'PEN',
+  tfH    : 1,
+  hist   : ls('fp2p_h10', {}),
+  zones  : ls('fp2p_z10', {}),
+  botOn  : false,
+  cycles : 0,
+  botTimer: null,
+  cdTimer : null,
+  nextTs  : null,
+};
 
-// BTC — Coinbase + respaldos
-async function fetchBTC(){
-  dot('d-btc','load');dot('d-btc2','load');
-  const srcs=[
-    {url:'https://api.coinbase.com/v2/prices/BTC-USD/spot',p:d=>parseFloat(d.data.amount),n:'Coinbase'},
-    {url:'https://blockchain.info/ticker?cors=true',p:d=>d.USD.last,n:'Blockchain'},
-    {url:'https://api-pub.bitfinex.com/v2/ticker/tBTCUSD',p:d=>d[6],n:'Bitfinex'},
-  ];
-  for(const s of srcs){
-    try{
-      const r=await fetch(s.url,{signal:AbortSignal.timeout(8000)});
-      if(!r.ok)continue;
-      const d=await r.json();
-      const p=s.p(d);
-      if(!p||isNaN(p)||p<5000)continue;
-      ST.btc=p;
-      T('tk-btc','$'+N(p,0));T('tk-btc-src',s.n);
-      T('v-spot','$'+N(p,0)+' USD');T('btc-src2',s.n+' · c/30s');
-      dot('d-btc','ok');dot('d-btc2','ok');
-      calcV();return;
-    }catch{}
+/* ════════════════════════════════════════
+   BTC SPOT
+════════════════════════════════════════ */
+const BTC_SRCS = [
+  { url:'https://api.coinbase.com/v2/prices/BTC-USD/spot',   p:d=>parseFloat(d.data.amount),   n:'Coinbase' },
+  { url:'https://blockchain.info/ticker?cors=true',           p:d=>d.USD.last,                  n:'Blockchain' },
+  { url:'https://api-pub.bitfinex.com/v2/ticker/tBTCUSD',    p:d=>d[6],                        n:'Bitfinex' },
+];
+async function fetchBTC() {
+  dot('d-btc','load'); dot('d-btc2','load');
+  for (const s of BTC_SRCS) {
+    try {
+      const r = await fetch(s.url, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) continue;
+      const d = await r.json();
+      const p = s.p(d);
+      if (!p || isNaN(p) || p < 5000) continue;
+      ST.btc = p;
+      T('tk-btc',    '$'+N(p,0));
+      T('tk-btc-src', s.n);
+      T('v-spot',    '$'+N(p,0)+' USD');
+      T('btc-src2',  s.n+' · c/30s');
+      dot('d-btc','ok'); dot('d-btc2','ok');
+      calcV(); return;
+    } catch {}
   }
-  dot('d-btc','err');dot('d-btc2','err');T('v-spot','Sin conexión');
+  dot('d-btc','err'); dot('d-btc2','err');
+  T('v-spot','Sin conexión');
+}
+fetchBTC();
+setInterval(fetchBTC, 30000);
+
+/* ════════════════════════════════════════
+   P2P — CriptoYa
+════════════════════════════════════════ */
+async function fetchCriptoYa(fiat) {
+  try {
+    const r = await fetch(`https://criptoya.com/api/usdt/${fiat.toLowerCase()}`,
+      { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const prio = ['binancep2p','bybitp2p','okexp2p','bitgetp2p','bingxp2p'];
+    for (const k of prio) { if (d[k]?.ask > 0) return d[k].ask; }
+    for (const k of Object.keys(d)) { if (d[k]?.ask > 0) return d[k].ask; }
+    return null;
+  } catch { return null; }
 }
 
-// P2P — CriptoYa
-async function fetchP2P(){
-  dot('d-pen','load');dot('d-ves','load');
-  const get=async(f)=>{
-    try{
-      const r=await fetch('https://criptoya.com/api/usdt/'+f,{signal:AbortSignal.timeout(10000)});
-      if(!r.ok)return null;
-      const d=await r.json();
-      const pr=['binancep2p','bybitp2p','okexp2p','bitgetp2p','bingxp2p'];
-      for(const k of pr){if(d[k]?.ask>0)return d[k].ask;}
-      for(const k of Object.keys(d)){if(d[k]?.ask>0)return d[k].ask;}
-      return null;
-    }catch{return null;}
-  };
-  const[p,v]=await Promise.all([get('pen'),get('ves')]);
-  const now=tNow();
-  if(p){ST.p2p.PEN=p;addHist('PEN',now,p);T('tk-pen','S/ '+N(p,3));T('sc-pen-txt','PEN: S/ '+N(p,3));dot('d-pen','ok');dot('d-sc-pen','ok');Q('sc-pen').className='sc ok';}
-  else{dot('d-pen','err');dot('d-sc-pen','err');Q('sc-pen').className='sc err';}
-  if(v){ST.p2p.VES=v;addHist('VES',now,v);T('tk-ves','Bs. '+N(v,2));T('sc-ves-txt','VES: Bs. '+N(v,2));dot('d-ves','ok');dot('d-sc-ves','ok');Q('sc-ves').className='sc ok';}
-  else{dot('d-ves','err');dot('d-sc-ves','err');Q('sc-ves').className='sc err';}
-  if(Q('v-chart').classList.contains('on'))drawChart();
-  ST.nextUpd=Date.now()+60000;
+async function refreshP2P() {
+  const [p, v] = await Promise.all([fetchCriptoYa('PEN'), fetchCriptoYa('VES')]);
+  const now = tNow();
+  if (p) {
+    ST.p2p.PEN = p;
+    T('tk-pen', 'S/ '+N(p,3));
+    dot('d-pen','ok');
+    addHist('PEN', now, p);
+  } else dot('d-pen','err');
+  if (v) {
+    ST.p2p.VES = v;
+    T('tk-ves', 'Bs. '+N(v,2));
+    dot('d-ves','ok');
+    addHist('VES', now, v);
+  } else dot('d-ves','err');
+  if (G('v-chart').classList.contains('on')) drawChart();
+}
+refreshP2P();
+setInterval(refreshP2P, 60000);
+
+/* ════════════════════════════════════════
+   BOT DE OPORTUNIDADES
+   Lógica:
+   - Verde (maker): publicas anuncio → cobran com. maker
+   - Rojo (taker):  tomas anuncio directo → 0% comisión
+   - Si precio_rojo >= precio_verde × (1 − fee_maker) → conviene rojo
+   - Ciclo: vender USDT → recibir Fiat → recomprar USDT en lotes
+════════════════════════════════════════ */
+let PROXIES = [
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
+
+async function p2pFetch(asset, fiat, tradeType, bank) {
+  // Usamos el endpoint legacy POST via proxy
+  const target = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search';
+  const body = JSON.stringify({
+    asset, fiat, tradeType, page: 1, rows: 5,
+    payTypes: bank ? [bank] : [],
+    merchantCheck: false,
+    publisherType: null,
+    transAmount: '',
+  });
+
+  for (const proxyFn of PROXIES) {
+    try {
+      const proxyUrl = proxyFn(target);
+      const r = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!r.ok) continue;
+      const raw = await r.text();
+      // allorigins envuelve en { contents }
+      let d;
+      try { d = JSON.parse(raw); } catch { continue; }
+      if (d.contents) { try { d = JSON.parse(d.contents); } catch { continue; } }
+      if (d?.code === '000000' && d?.data?.length) return d;
+    } catch {}
+  }
+
+  // Fallback: endpoint GET público (sin filtro banco)
+  try {
+    const getUrl = `https://www.binance.com/bapi/c2c/v1/public/c2c/agent/ad-list?fiat=${fiat}&asset=${asset}&tradeType=${tradeType}&limit=5`;
+    for (const proxyFn of PROXIES) {
+      try {
+        const r = await fetch(proxyFn(getUrl), { signal: AbortSignal.timeout(10000) });
+        if (!r.ok) continue;
+        const raw = await r.text();
+        let d; try { d = JSON.parse(raw); } catch { continue; }
+        if (d.contents) { try { d = JSON.parse(d.contents); } catch { continue; } }
+        if (d?.data?.length) return d;
+      } catch {}
+    }
+  } catch {}
+  return null;
 }
 
-fetchBTC();fetchP2P();
-setInterval(fetchBTC,30000);setInterval(fetchP2P,60000);
-setInterval(()=>{T('tk-time',new Date().toLocaleTimeString('es-PE'));},1000);
-setInterval(()=>{if(!ST.nextUpd)return;const s=Math.max(0,Math.round((ST.nextUpd-Date.now())/1000));T('sbar-upd','Próxima: '+s+'s');},1000);
+async function runBotCycle() {
+  const fiat    = G('bot-fiat').value;
+  const bank    = G('bot-bank').value;
+  const capital = parseFloat(G('bot-capital').value) || 1300;
+  const feeM    = parseFloat(G('bot-fee').value) / 100 || 0.002;
+  const rebuyLot= parseFloat(G('bot-rebuy').value) || 30000;
+  const sym     = fiat === 'VES' ? 'Bs.' : 'S/';
 
-// CALC ESTABLES
-function calcS(){
-  const buy=+gv('s-buy')||0,sell=+gv('s-sell')||0,com=+gv('s-com')||0;
-  if(!buy||!sell){['s-r0','s-r00','s-r1','s-r3','s-r4'].forEach(id=>rv(id,'—','dim'));return;}
-  const f=com/100,bEf=buy*(1+f),sEf=sell*(1-f),sp=sEf-bEf,mg=sEf/bEf-1,p100=100*mg;
-  rv('s-r0',N(bEf,4)+' PEN','dim');rv('s-r00',N(sEf,4)+' PEN','dim');
-  rv('s-r1',(sp>=0?'+':'')+N(sp,4)+' PEN',sp>0?'cyan':'red');
-  rv('s-r3',(p100>0?'+':'')+N(p100,4)+' USDT',p100>0?'green':'red');
-  rv('s-r4',N(mg*100,2)+'%',mg>0?'big':'big red');
-  if(mg>0)Q('s-r4').className='rv big';else Q('s-r4').className='rv big red';
+  dot('d-bot','load');
+  T('sc-bot-txt','Consultando mercado…');
+
+  try {
+    // Tabla VERDE = vendedores USDT (SELL) → precio al que tú publicarías tu anuncio
+    // Tabla ROJA  = compradores USDT (BUY) → precio al que venderías directo
+    const [verde, rojo] = await Promise.all([
+      p2pFetch('USDT', fiat, 'SELL', bank),
+      p2pFetch('USDT', fiat, 'BUY',  bank),
+    ]);
+
+    if (!verde?.data?.length && !rojo?.data?.length) {
+      showAlert('err', null, fiat);
+      dot('d-bot','err');
+      T('sc-bot-txt', 'Sin datos del mercado');
+      return;
+    }
+
+    // Mejor precio verde (posición 0 = más bajo = referencia de mercado)
+    const topVerde   = verde?.data?.[0];
+    const priceVerde = topVerde ? parseFloat(topVerde.adv?.price || topVerde.price || 0) : 0;
+
+    // Mejor precio rojo (posición 0 = más alto = comprador que paga más)
+    const topRojo    = rojo?.data?.[0];
+    const priceRojo  = topRojo  ? parseFloat(topRojo.adv?.price  || topRojo.price  || 0) : 0;
+
+    // Precio de recompra USDT (posición 1-2 de tabla verde para no chocar con el mejor)
+    const rebuyAd    = verde?.data?.[1] || verde?.data?.[0];
+    const rebuyPrice = rebuyAd ? parseFloat(rebuyAd.adv?.price || rebuyAd.price || 0) : 0;
+
+    if (!priceVerde && !priceRojo) { showAlert('err', null, fiat); return; }
+
+    // DECISIÓN: rojo vs verde
+    const netVerde   = priceVerde * (1 - feeM);   // lo que cobras neto publicando
+    const netRojo    = priceRojo;                   // lo que cobras taker (0% fee)
+    const useRojo    = priceRojo > 0 && netRojo >= netVerde;
+
+    const effectivePrice = useRojo ? netRojo : netVerde;
+    const refPrice       = useRojo ? priceRojo : priceVerde;
+
+    // Ganancia por USDT del ciclo completo
+    const gainPerUsdt    = rebuyPrice > 0 ? effectivePrice - rebuyPrice : 0;
+    const gainPct        = rebuyPrice > 0 ? gainPerUsdt / rebuyPrice * 100 : 0;
+
+    // Capital en Fiat
+    const capitalFiat    = capital * refPrice;
+    const rebuysNeeded   = Math.ceil(capitalFiat / rebuyLot);
+
+    // Nombre del trader
+    const traderName = useRojo
+      ? (topRojo?.advertiser?.nickName || topRojo?.nickName || 'N/A')
+      : (topVerde?.advertiser?.nickName || topVerde?.nickName || 'TU ANUNCIO');
+    const isMerchant = useRojo
+      ? (topRojo?.advertiser?.userType === 'merchant' || topRojo?.userType === 'merchant')
+      : null;
+
+    const opp = {
+      useRojo, fiat, sym, bank, traderName, isMerchant,
+      sellRate    : refPrice,
+      netSellRate : effectivePrice,
+      rebuyRate   : rebuyPrice,
+      gainPct,
+      gainPerUsdt,
+      capital, capitalFiat,
+      rebuysNeeded,
+      rebuyLot,
+      feeM,
+    };
+
+    showAlert('ok', opp, fiat);
+    ST.cycles++;
+    T('sbar-cycles', ST.cycles + ' ciclo' + (ST.cycles !== 1 ? 's' : ''));
+    dot('d-bot','ok');
+    T('sc-bot-txt', fiat + ' · ' + bank + ' · ✓ OK');
+
+  } catch (e) {
+    showAlert('err', null, fiat);
+    dot('d-bot','err');
+    T('sc-bot-txt', 'Error: ' + e.message);
+  }
 }
 
-// CALC BTC LOOP
-function calcV(){
-  const buyBTC=+gv('v-buy')||0,sellPEN=+gv('v-sell')||0,comP2P=+gv('v-com')||0,spot=ST.btc;
-  const ids=['v-r0','v-r1','v-r2','v-r3','v-r4','v-r5','v-r6','v-r7','v-r8','v-r9'];
-  if(!buyBTC||!sellPEN||!spot){ids.forEach(id=>rv(id,'—','dim'));return;}
+function showAlert(status, opp, fiat) {
+  const el = G('bot-alerts');
+  if (status === 'err') {
+    el.innerHTML = `
+      <div class="no-opp">
+        ❌ Sin datos de mercado disponibles.<br>
+        <small style="color:var(--dim2)">Verifica conexión o intenta más tarde.</small>
+      </div>`;
+    return;
+  }
+
+  const { useRojo, sym, bank, traderName, isMerchant,
+          sellRate, netSellRate, rebuyRate, gainPct,
+          gainPerUsdt, capital, capitalFiat,
+          rebuysNeeded, rebuyLot } = opp;
+
+  const cardClass  = useRojo ? 'red-card' : 'green';
+  const badgeClass = useRojo ? 'red-card' : 'green';
+  const label      = useRojo ? '🔴 VENTA DIRECTA (Rojo)' : '🟢 ANUNCIO PROPIO (Verde)';
+  const gainClass  = gainPct > 0 ? 'green' : 'red';
+  const ts         = new Date().toLocaleTimeString('es-PE');
+
+  el.innerHTML = `
+    <div class="opp-card ${cardClass}">
+      <div class="opp-header">
+        <span class="opp-badge ${badgeClass}">${label}</span>
+        <span class="opp-bank">🏦 ${bank}</span>
+      </div>
+      <div class="opp-grid">
+        <div class="opp-item">
+          <div class="opp-item-lbl">👤 Trader</div>
+          <div class="opp-item-val ${useRojo ? 'cyan' : 'dim'}">${traderName}${isMerchant === true ? ' ✅' : isMerchant === false ? ' ⚠️' : ''}</div>
+        </div>
+        <div class="opp-item">
+          <div class="opp-item-lbl">📤 Tasa venta</div>
+          <div class="opp-item-val ${useRojo ? 'red' : 'green'}">${sym} ${N(sellRate, 2)}</div>
+        </div>
+        <div class="opp-item">
+          <div class="opp-item-lbl">💵 Recompra USDT</div>
+          <div class="opp-item-val cyan">${sym} ${N(rebuyRate, 2)}</div>
+        </div>
+        <div class="opp-item">
+          <div class="opp-item-lbl">🔄 Órdenes recompra</div>
+          <div class="opp-item-val gold">${rebuysNeeded} × ${sym} ${N(rebuyLot,0)}</div>
+        </div>
+      </div>
+      <div class="opp-profit">
+        <div>
+          <div class="opp-profit-lbl">📊 Ganancia estimada</div>
+          <div style="font-size:9px;color:var(--dim);margin-top:2px">
+            ${N(gainPerUsdt,2)} ${sym}/USDT · capital ${N(capitalFiat,0)} ${sym}
+          </div>
+        </div>
+        <div class="opp-profit-val ${gainClass}">${N(gainPct,2)}%</div>
+      </div>
+      <div style="font-size:9px;color:var(--dim);margin-bottom:6px">
+        💰 Capital Mayor de ${N(capital,0)} USDT
+      </div>
+      <div class="opp-ts">🕐 ${ts}</div>
+    </div>`;
+}
+
+/* ── BOT LOOP ── */
+function startBot() {
+  if (ST.botOn) return;
+  ST.botOn = true;
+  const interval = (parseFloat(G('bot-interval').value) || 10) * 1000;
+  runBotCycle();
+  ST.botTimer = setInterval(() => runBotCycle(), interval);
+  startCountdown(interval);
+}
+
+function startCountdown(ms) {
+  let start = Date.now();
+  clearInterval(ST.cdTimer);
+  ST.cdTimer = setInterval(() => {
+    const elapsed  = Date.now() - start;
+    const interval = ms;
+    const remaining = Math.max(0, interval - elapsed);
+    const pct = (remaining / interval) * 100;
+    G('countdown-fill').style.width = pct + '%';
+    T('countdown-txt', Math.ceil(remaining/1000) + 's');
+    if (elapsed >= interval) { start = Date.now(); }
+  }, 100);
+}
+
+function saveCfg() {
+  // Si el bot ya está corriendo, reiniciarlo con nueva config
+  if (ST.botOn) {
+    clearInterval(ST.botTimer);
+    clearInterval(ST.cdTimer);
+    ST.botOn = false;
+    setTimeout(startBot, 200);
+  }
+}
+
+/* ════════════════════════════════════════
+   CALC ESTABLES
+════════════════════════════════════════ */
+function calcS() {
+  const buy  = +gv('s-buy')  || 0;
+  const sell = +gv('s-sell') || 0;
+  const com  = +gv('s-com')  || 0;
+  const fiat = G('s-fiat').value;
+  const sym  = fiat === 'VES' ? 'Bs.' : 'S/';
+  if (!buy || !sell) { ['s-r0','s-r00','s-r1','s-r3','s-r4'].forEach(id=>rv(id,'—','dim')); return; }
+  const f=com/100, bEf=buy*(1+f), sEf=sell*(1-f);
+  const sp=sEf-bEf, mg=sEf/bEf-1, p100=100*mg;
+  rv('s-r0',  N(bEf,4)+' '+sym, 'dim');
+  rv('s-r00', N(sEf,4)+' '+sym, 'dim');
+  rv('s-r1',  (sp>=0?'+':'')+N(sp,4)+' '+sym, sp>0?'cyan':'red');
+  rv('s-r3',  (p100>0?'+':'')+N(p100,4)+' USDT', p100>0?'green':'red');
+  rv('s-r4',  N(mg*100,2)+'%', mg>0?'big':'big red');
+  if(mg>0)G('s-r4').className='rv big';else G('s-r4').className='rv big red';
+}
+
+/* ════════════════════════════════════════
+   CALC BTC LOOP
+════════════════════════════════════════ */
+function calcV() {
+  const buyBTC  = +gv('v-buy')  || 0;
+  const sellF   = +gv('v-sell') || 0;
+  const comP2P  = +gv('v-com')  || 0;
+  const spot    = ST.btc;
+  const fiat    = G('v-fiat').value;
+  const sym     = fiat === 'VES' ? 'Bs.' : 'S/';
+  const ids = ['v-r0','v-r1','v-r2','v-r3','v-r4','v-r5','v-r6','v-r7','v-r8','v-r9'];
+  if (!buyBTC||!sellF||!spot) { ids.forEach(id=>rv(id,'—','dim')); return; }
   const f=comP2P/100;
-  const cR=buyBTC*(1+f),mPEN=spot*sellPEN,tcEf=cR/spot;
-  const pMkt=buyBTC/mPEN*100,disc=100-pMkt;
-  const uOut=spot*(1-0.001),pBack=uOut*sellPEN*(1-f);
-  const gPEN=pBack-cR,gUSDT=gPEN/sellPEN,invU=cR/sellPEN,mg=invU>0?gUSDT/invU*100:0;
-  rv('v-r0','S/ '+N(mPEN,2)+'/BTC','dim');
-  rv('v-r1','S/ '+N(cR,2),'dim');
-  rv('v-r2',N(tcEf,4)+' PEN/USD','cyan');
-  rv('v-r3',N(pMkt,2)+'% · ahorras '+N(disc,2)+'%',disc>0?'green':'red');
-  rv('v-r4',N(uOut,4)+' USDT','cyan');
-  rv('v-r5','S/ '+N(pBack,2),'dim');
-  rv('v-r6',(gPEN>=0?'+':'')+'S/ '+N(gPEN,2),gPEN>=0?'green':'red');
-  rv('v-r7',(gUSDT>=0?'+':'')+N(gUSDT,4)+' USDT',gUSDT>=0?'green':'red');
-  rv('v-r8',N(invU,4)+' USDT','dim');
-  rv('v-r9',N(mg,2)+'%',mg>=0?'big':'big red');
-  if(mg>=0)Q('v-r9').className='rv big';else Q('v-r9').className='rv big red';
+  const cR=buyBTC*(1+f), mF=spot*sellF, tcEf=cR/spot;
+  const pMkt=buyBTC/mF*100, disc=100-pMkt;
+  const uOut=spot*(1-0.001), pBack=uOut*sellF*(1-f);
+  const gF=pBack-cR, gU=gF/sellF, invU=cR/sellF, mg=invU>0?gU/invU*100:0;
+  rv('v-r0', sym+' '+N(mF,2)+'/BTC','dim');
+  rv('v-r1', sym+' '+N(cR,2),'dim');
+  rv('v-r2', N(tcEf,4)+' '+sym+'/USD','cyan');
+  rv('v-r3', N(pMkt,2)+'% mkt · ahorras '+N(disc,2)+'%', disc>0?'green':'red');
+  rv('v-r4', N(uOut,4)+' USDT','cyan');
+  rv('v-r5', sym+' '+N(pBack,2),'dim');
+  rv('v-r6', (gF>=0?'+':'')+sym+' '+N(gF,2), gF>=0?'green':'red');
+  rv('v-r7', (gU>=0?'+':'')+N(gU,4)+' USDT', gU>=0?'green':'red');
+  rv('v-r8', N(invU,4)+' USDT','dim');
+  rv('v-r9', N(mg,2)+'%', mg>=0?'big':'big red');
+  if(mg>=0)G('v-r9').className='rv big';else G('v-r9').className='rv big red';
 }
 
-// GRÁFICO
-function drawChart(){
-  const wrap=Q('chartWrap'),canvas=Q('cv'),hint=Q('ch-hint');
-  const DPR=window.devicePixelRatio||1,W=wrap.clientWidth,H=wrap.clientHeight;
-  canvas.width=W*DPR;canvas.height=H*DPR;
-  canvas.style.width=W+'px';canvas.style.height=H+'px';
+/* ════════════════════════════════════════
+   GRÁFICO CANVAS
+════════════════════════════════════════ */
+function drawChart() {
+  const wrap=G('chartWrap'), canvas=G('cv'), hint=G('ch-hint');
+  const DPR=window.devicePixelRatio||1, W=wrap.clientWidth, H=wrap.clientHeight;
+  canvas.width=W*DPR; canvas.height=H*DPR;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
-  ctx.scale(DPR,DPR);ctx.fillStyle='#080f1c';ctx.fillRect(0,0,W,H);
-  const now=tNow(),cutoff=ST.tfH>0?now-ST.tfH*3600:0;
+  ctx.scale(DPR,DPR); ctx.fillStyle='#080f1c'; ctx.fillRect(0,0,W,H);
+  const now=tNow(), cutoff=ST.tfH>0?now-ST.tfH*3600:0;
   const raw=(ST.hist[ST.pair]||[]).filter(p=>p.t>=cutoff);
   const seen=new Set();
   const pts=raw.filter(p=>{if(seen.has(p.t))return false;seen.add(p.t);return true;}).sort((a,b)=>a.t-b.t);
-  T('ci-label',ST.pair+'/USDT · '+(ST.tfH===0?'Todo':ST.tfH<24?ST.tfH+'H':'1D'));
-  T('ci-pts',pts.length+' punto(s)');
-  if(pts.length<2){hint.style.display='flex';T('hint-msg',pts.length===1?'⏳ Esperando segundo punto (60s)…':'📡 Obteniendo precios P2P…');return;}
+  T('ci-label', ST.pair+'/USDT · '+(ST.tfH===0?'Todo':ST.tfH<24?ST.tfH+'H':'1D'));
+  T('ci-pts', pts.length+' punto(s)');
+  if(pts.length<2){hint.style.display='flex';return;}
   hint.style.display='none';
-  const zs=ST.zones[ST.pair]||[],vals=pts.map(p=>p.v);
+  const zs=ST.zones[ST.pair]||[], vals=pts.map(p=>p.v);
   let minV=Math.min(...vals,...(zs.length?zs:[vals[0]]));
   let maxV=Math.max(...vals,...(zs.length?zs:[vals[0]]));
-  const pad=(maxV-minV)*0.15||0.005;minV-=pad;maxV+=pad;
-  const range=maxV-minV||0.001,span=(pts[pts.length-1].t-pts[0].t)||1;
-  const P={l:58,r:12,t:18,b:28},cW=W-P.l-P.r,cH=H-P.t-P.b;
-  const tx=t=>P.l+(t-pts[0].t)/span*cW,ty=v=>P.t+(1-(v-minV)/range)*cH;
-  ctx.strokeStyle='#182438';ctx.lineWidth=1;
+  const pad=(maxV-minV)*0.15||0.005; minV-=pad; maxV+=pad;
+  const range=maxV-minV||0.001, span=(pts[pts.length-1].t-pts[0].t)||1;
+  const P={l:56,r:12,t:16,b:26};
+  const cW=W-P.l-P.r, cH=H-P.t-P.b;
+  const tx=t=>P.l+(t-pts[0].t)/span*cW, ty=v=>P.t+(1-(v-minV)/range)*cH;
+  ctx.strokeStyle='#182438'; ctx.lineWidth=1;
   for(let i=0;i<=5;i++){
-    const y=P.t+i/5*cH,val=maxV-i/5*range;
-    ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(W-P.r,y);ctx.stroke();
-    ctx.fillStyle='#506a8a';ctx.font='10px monospace';ctx.textAlign='right';
-    ctx.fillText(N(val,3),P.l-4,y+3.5);
+    const y=P.t+i/5*cH, val=maxV-i/5*range;
+    ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(W-P.r,y); ctx.stroke();
+    ctx.fillStyle='#506a8a'; ctx.font='10px monospace'; ctx.textAlign='right';
+    ctx.fillText(N(val,2),P.l-4,y+3.5);
   }
   const ticks=Math.min(5,pts.length-1);
-  ctx.fillStyle='#506a8a';ctx.font='9px monospace';ctx.textAlign='center';
+  ctx.fillStyle='#506a8a'; ctx.font='9px monospace'; ctx.textAlign='center';
   for(let i=0;i<=ticks;i++){
     const idx=Math.round(i*(pts.length-1)/ticks);
     const d=new Date(pts[idx].t*1000);
-    ctx.fillText(d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'),tx(pts[idx].t),H-P.b+14);
+    ctx.fillText(d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'),tx(pts[idx].t),H-P.b+13);
   }
   const grad=ctx.createLinearGradient(0,P.t,0,P.t+cH);
-  grad.addColorStop(0,'rgba(0,207,255,.18)');grad.addColorStop(.7,'rgba(0,207,255,.04)');grad.addColorStop(1,'rgba(0,207,255,0)');
-  ctx.beginPath();ctx.moveTo(tx(pts[0].t),ty(pts[0].v));
+  grad.addColorStop(0,'rgba(0,207,255,.18)'); grad.addColorStop(.7,'rgba(0,207,255,.04)'); grad.addColorStop(1,'rgba(0,207,255,0)');
+  ctx.beginPath(); ctx.moveTo(tx(pts[0].t),ty(pts[0].v));
   pts.forEach(p=>ctx.lineTo(tx(p.t),ty(p.v)));
-  ctx.lineTo(tx(pts[pts.length-1].t),P.t+cH);ctx.lineTo(tx(pts[0].t),P.t+cH);
-  ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-  ctx.beginPath();ctx.strokeStyle='#00cfff';ctx.lineWidth=2;ctx.lineJoin='round';
+  ctx.lineTo(tx(pts[pts.length-1].t),P.t+cH); ctx.lineTo(tx(pts[0].t),P.t+cH);
+  ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle='#00cfff'; ctx.lineWidth=2; ctx.lineJoin='round';
   pts.forEach((p,i)=>i===0?ctx.moveTo(tx(p.t),ty(p.v)):ctx.lineTo(tx(p.t),ty(p.v)));
   ctx.stroke();
   const lp=pts[pts.length-1];
-  ctx.beginPath();ctx.arc(tx(lp.t),ty(lp.v),4,0,Math.PI*2);
-  ctx.fillStyle='#00cfff';ctx.fill();ctx.strokeStyle='#03060e';ctx.lineWidth=2;ctx.stroke();
-  ctx.fillStyle='#00cfff';ctx.font='bold 11px monospace';ctx.textAlign='left';
-  ctx.fillText(N(lp.v,4),P.l+4,P.t+14);
+  ctx.beginPath(); ctx.arc(tx(lp.t),ty(lp.v),4,0,Math.PI*2);
+  ctx.fillStyle='#00cfff'; ctx.fill();
+  ctx.strokeStyle='#03060e'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#00cfff'; ctx.font='bold 11px monospace'; ctx.textAlign='left';
+  ctx.fillText(N(lp.v,3),P.l+4,P.t+13);
   ctx.font='9px monospace';
   zs.forEach(z=>{
     if(z<minV||z>maxV)return;
     const y=ty(z);
-    ctx.setLineDash([7,4]);ctx.strokeStyle='#ffb400';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(W-P.r,y);ctx.stroke();
-    ctx.setLineDash([]);ctx.fillStyle='rgba(255,180,0,.08)';ctx.fillRect(P.l,y-3,cW,6);
-    ctx.fillStyle='#ffb400';ctx.textAlign='right';ctx.fillText(N(z,3),W-P.r-2,y-4);
+    ctx.setLineDash([7,4]); ctx.strokeStyle='#ffb400'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(W-P.r,y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,180,0,.08)'; ctx.fillRect(P.l,y-3,cW,6);
+    ctx.fillStyle='#ffb400'; ctx.textAlign='right'; ctx.fillText(N(z,3),W-P.r-2,y-4);
   });
 }
 
+/* ════════════════════════════════════════
+   HISTORIAL & ZONAS
+════════════════════════════════════════ */
 function addHist(pair,t,v){
   if(!ST.hist[pair])ST.hist[pair]=[];
-  const arr=ST.hist[pair],last=arr[arr.length-1];
+  const arr=ST.hist[pair], last=arr[arr.length-1];
   if(last&&Math.abs(last.t-t)<10&&last.v===v)return;
-  arr.push({t,v});if(arr.length>10000)arr.splice(0,arr.length-10000);
-  sl('fp2p_hx',ST.hist);
+  arr.push({t,v}); if(arr.length>10000)arr.splice(0,arr.length-10000);
+  sl('fp2p_h10',ST.hist);
 }
-
 function addZone(){
-  const p=parseFloat(Q('zone-in').value);if(!p||isNaN(p))return;
+  const p=parseFloat(G('zone-in').value); if(!p||isNaN(p))return;
   if(!ST.zones[ST.pair])ST.zones[ST.pair]=[];
   if(!ST.zones[ST.pair].includes(p))ST.zones[ST.pair].push(p);
-  sl('fp2p_zx',ST.zones);Q('zone-in').value='';renderChips();drawChart();
+  sl('fp2p_z10',ST.zones); G('zone-in').value='';
+  renderChips(); drawChart();
 }
-function removeZone(v){ST.zones[ST.pair]=(ST.zones[ST.pair]||[]).filter(z=>z!==v);sl('fp2p_zx',ST.zones);renderChips();drawChart();}
+function removeZone(v){
+  ST.zones[ST.pair]=(ST.zones[ST.pair]||[]).filter(z=>z!==v);
+  sl('fp2p_z10',ST.zones); renderChips(); drawChart();
+}
 function renderChips(){
-  const zs=ST.zones[ST.pair]||[],el=Q('chips'),pfx=ST.pair==='VES'?'Bs. ':'S/ ';
+  const zs=ST.zones[ST.pair]||[], el=G('chips');
+  const pfx=ST.pair==='VES'?'Bs. ':'S/ ';
   if(!zs.length){el.innerHTML='<span style="font-size:9px;color:var(--dim2)">Sin zonas aún</span>';return;}
-  el.innerHTML=[...zs].sort((a,b)=>b-a).map(z=>`<div class="chip">${pfx}${N(z,3)}<span class="chip-x" onclick="removeZone(${z})">✕</span></div>`).join('');
+  el.innerHTML=[...zs].sort((a,b)=>b-a).map(z=>
+    `<div class="chip">${pfx}${N(z,3)}<span class="chip-x" onclick="removeZone(${z})">✕</span></div>`
+  ).join('');
 }
 
+/* ════════════════════════════════════════
+   NAVEGACIÓN
+════════════════════════════════════════ */
 function goTab(id,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  Q('v-'+id).classList.add('on');el.classList.add('on');
+  G('v-'+id).classList.add('on'); el.classList.add('on');
   if(id==='chart'){renderChips();drawChart();}
+  if(id==='bot'&&!ST.botOn){startBot();}
 }
 function goPanel(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
-  Q('p-'+id).classList.add('on');el.classList.add('on');
+  G('p-'+id).classList.add('on'); el.classList.add('on');
 }
-function setPair(pair,el){ST.pair=pair;document.querySelectorAll('#pair-pills .pill').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderChips();drawChart();}
-function setTF(h,el){ST.tfH=h;document.querySelectorAll('#tf-pills .pill').forEach(t=>t.classList.remove('on'));el.classList.add('on');drawChart();}
+function setPair(pair,el){
+  ST.pair=pair;
+  document.querySelectorAll('#pair-pills .pill').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on'); renderChips(); drawChart();
+}
+function setTF(h,el){
+  ST.tfH=h;
+  document.querySelectorAll('#tf-pills .pill').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on'); drawChart();
+}
 
-let rT;window.addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{if(Q('v-chart').classList.contains('on'))drawChart();},150);});
+/* ════════════════════════════════════════
+   RELOJ & RESIZE
+════════════════════════════════════════ */
+setInterval(()=>{T('tk-time',new Date().toLocaleTimeString('es-PE'));},1000);
+let rT;
+window.addEventListener('resize',()=>{
+  clearTimeout(rT);
+  rT=setTimeout(()=>{if(G('v-chart').classList.contains('on'))drawChart();},150);
+});
 
-function Q(id){return document.getElementById(id);}
-function T(id,t){const e=Q(id);if(e)e.textContent=t;}
-function gv(id){return document.getElementById(id)?.value||'';}
-function tNow(){return Math.floor(Date.now()/1000);}
-function N(n,d){return(+n).toLocaleString('es-PE',{minimumFractionDigits:d,maximumFractionDigits:d});}
-function dot(id,st){const d=Q(id);if(d)d.className='dot '+st;}
-function rv(id,txt,cls){const e=Q(id);if(!e)return;e.textContent=txt;if(cls!==undefined)e.className='rv '+cls;}
+/* ════════════════════════════════════════
+   UTILS
+════════════════════════════════════════ */
+function G(id)    {return document.getElementById(id);}
+function T(id,t)  {const e=G(id);if(e)e.textContent=t;}
+function gv(id)   {return document.getElementById(id)?.value||'';}
+function tNow()   {return Math.floor(Date.now()/1000);}
+function N(n,d)   {return(+n).toLocaleString('es-PE',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function dot(id,st){const d=G(id);if(d)d.className='dot '+st;}
+function rv(id,txt,cls){const e=G(id);if(!e)return;e.textContent=txt;if(cls!==undefined)e.className='rv '+cls;}
 function ls(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
-function sl(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function sl(k,v)  {try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 </script>
+
 </body>
 </html>
