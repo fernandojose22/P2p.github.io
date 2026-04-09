@@ -446,14 +446,16 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
   </div>
 </div>
 
-<!-- Signal History -->
+<!-- Signal History (collapsible) -->
 <div class="hist-wrap" id="hist-wrap" style="display:none">
-  <div class="hist-title">
-    <span>&#x1F4DC; Historial de senales</span>
+  <div class="hist-title" onclick="toggleHist()" style="cursor:pointer">
+    <span>&#x1F4DC; Historial de senales <span id="hist-arrow" style="font-size:10px">&#x25B6;</span></span>
     <span id="hist-count" style="color:var(--dim2)">0</span>
   </div>
-  <div id="hist-trend"></div>
-  <div class="hist-scroll" id="hist-list"></div>
+  <div id="hist-body" style="display:none">
+    <div id="hist-trend"></div>
+    <div class="hist-scroll" id="hist-list"></div>
+  </div>
 </div>
 
 <div class="schips">
@@ -724,6 +726,13 @@ async function runBotCycle() {
 
   dot('d-bot', 'load'); T('sc-txt', 'Consultando...');
 
+  // Immediately show loading state so user never sees stale data
+  G('bot-alerts').innerHTML = `<div class="no-opp" style="padding:20px">
+    <span class="dot load" style="width:8px;height:8px;display:inline-block;margin-right:6px"></span>
+    Consultando Binance P2P en tiempo real...
+    <br><small style="color:var(--dim2)">${new Date().toLocaleTimeString('es-PE')}</small>
+  </div>`;
+
   try {
     /* ── 3 consultas paralelas ──────────────────────────────
        1. tablaRoja  (BUY)  → compradores de USDT → tu venta directa (taker, 0% fee)
@@ -809,7 +818,7 @@ async function runBotCycle() {
 
     // RENDER
     const tipo      = esRojo ? 'rojo' : 'verde';
-    const ts        = new Date().toLocaleTimeString('es-PE');
+    const ts = new Date().toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
     const gainClass = gananciaPct > 0 ? 'green' : 'red';
 
     const motivo = esRojo
@@ -879,7 +888,7 @@ async function runBotCycle() {
 
     html += `<div class="opp-footer">
       <span>Capital: ${sym} ${N(capitalFiat,0)}</span>
-      <span>${ts}</span>
+      <span style="color:var(--green);font-weight:600">&#x25CF; LIVE ${ts}</span>
     </div></div>`;
 
     G('bot-alerts').innerHTML = html;
@@ -967,7 +976,15 @@ function restartBot() {
   setTimeout(startBot, 300);
 }
 
-function onCfgChange() { if (ST.bot.on) restartBot(); }
+function onCfgChange() {
+  // Clear stale signals — config changed means old data is irrelevant
+  ST.signals = [];
+  ST.bot.cycles = 0;
+  T('sc-cyc', '0 ciclos');
+  const histWrap = G('hist-wrap');
+  if (histWrap) histWrap.style.display = 'none';
+  if (ST.bot.on) restartBot();
+}
 
 function startCountdown() {
   clearInterval(ST.bot.cdTimer);
@@ -1269,12 +1286,30 @@ function renderChips() {
 /* ════════════════════════════════════════════════
    NAVEGACION
 ════════════════════════════════════════════════ */
+function toggleHist() {
+  const body = G('hist-body');
+  const arrow = G('hist-arrow');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    arrow.innerHTML = '&#x25BC;';
+  } else {
+    body.style.display = 'none';
+    arrow.innerHTML = '&#x25B6;';
+  }
+}
 function goTab(id, el) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
   G('v-' + id).classList.add('on'); el.classList.add('on');
   if (id === 'chart') { renderChips(); drawChart(); initChartEvents(); }
-  if (id === 'bot' && !ST.bot.on) { startBot(); }
+  if (id === 'bot') {
+    if (!ST.bot.on) {
+      startBot();
+    } else {
+      // Bot already running — force immediate fresh cycle
+      runBotCycle();
+    }
+  }
 }
 function goPanel(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
