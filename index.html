@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -21,154 +22,157 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 
 /* ─── TICKER ─── */
 #ticker{position:sticky;top:0;z-index:200;background:rgba(3,6,14,.97);
-backdrop-filter:blur(20px);border-bottom:1px solid var(--br);
+backdrop-filter:blur(20px);border-bottom:1px solid var(–br);
 display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;height:52px}
 #ticker::-webkit-scrollbar{display:none}
 .tk{display:flex;flex-direction:column;justify-content:center;
-padding:0 13px;border-right:1px solid var(--br);flex:0 0 auto;min-width:108px}
-.tk-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--dim);
+padding:0 13px;border-right:1px solid var(–br);flex:0 0 auto;min-width:108px}
+.tk-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(–dim);
 text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
-.tk-val{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;white-space:nowrap;transition:color .3s}
-.tk-val.cyan{color:var(--cyan)}.tk-val.gold{color:var(--gold)}.tk-val.green{color:var(--green)}
-.tk-sub{font-size:7px;color:var(--dim);margin-top:1px}
-#tk-time{margin-left:auto;padding:0 12px;font-size:9px;color:var(--dim);
-font-family:'IBM Plex Mono',monospace;flex:0 0 auto}
+.tk-val{font-family:‘IBM Plex Mono’,monospace;font-size:14px;font-weight:600;white-space:nowrap;transition:color .3s}
+.tk-val.cyan{color:var(–cyan)}.tk-val.gold{color:var(–gold)}.tk-val.green{color:var(–green)}
+.tk-sub{font-size:7px;color:var(–dim);margin-top:1px}
+#tk-time{margin-left:auto;padding:0 12px;font-size:9px;color:var(–dim);
+font-family:‘IBM Plex Mono’,monospace;flex:0 0 auto}
 .dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
-.dot.ok{background:var(--green);animation:p 1.5s infinite}
-.dot.err{background:var(--red)}.dot.load{background:var(--gold);animation:p .7s infinite}
+.dot.ok{background:var(–green);animation:p 1.5s infinite}
+.dot.err{background:var(–red)}.dot.load{background:var(–gold);animation:p .7s infinite}
 @keyframes p{50%{opacity:.2;transform:scale(.5)}}
 
 /* ─── SHELL ─── */
 #app{max-width:820px;margin:0 auto;padding:12px;position:relative;z-index:1}
 .logo-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.logo{font-size:15px;font-weight:700;color:var(--cyan);letter-spacing:-.3px}
-.logo b{color:var(--text)}
-.badge{font-size:8px;letter-spacing:.1em;border:1px solid var(--br2);border-radius:20px;padding:3px 9px;color:var(--dim);font-weight:600}
+.logo{font-size:15px;font-weight:700;color:var(–cyan);letter-spacing:-.3px}
+.logo b{color:var(–text)}
+.badge{font-size:8px;letter-spacing:.1em;border:1px solid var(–br2);border-radius:20px;padding:3px 9px;color:var(–dim);font-weight:600}
 
 /* ─── TABS ─── */
 .tabs{display:flex;gap:4px;margin-bottom:14px}
-.tab{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(--br);
-background:var(--s1);color:var(--dim);font-family:inherit;
+.tab{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(–br);
+background:var(–s1);color:var(–dim);font-family:inherit;
 font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
-.tab.on{background:var(--cyan);color:#03060e;border-color:var(--cyan)}
+.tab.on{background:var(–cyan);color:#03060e;border-color:var(–cyan)}
 .view{display:none}.view.on{display:block;animation:up .2s ease}
 @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ─── CARDS ─── */
-.card{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px;margin-bottom:12px}
-.ctitle{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--dim);
+.card{background:var(–s1);border:1px solid var(–br);border-radius:12px;padding:14px;margin-bottom:12px}
+.ctitle{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(–dim);
 text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.ctitle::before{content:'';width:3px;height:10px;border-radius:2px;background:var(--cyan);flex-shrink:0}
+.ctitle::before{content:’’;width:3px;height:10px;border-radius:2px;background:var(–cyan);flex-shrink:0}
 
 /* ─── INPUTS ─── */
 .row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:80px}
-.field label{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(--dim);text-transform:uppercase}
-.field input,.field select{background:var(--s2);border:1px solid var(--br);border-radius:8px;
-color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:14px;
+.field label{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(–dim);text-transform:uppercase}
+.field input,.field select{background:var(–s2);border:1px solid var(–br);border-radius:8px;
+color:var(–text);font-family:‘IBM Plex Mono’,monospace;font-size:14px;
 padding:10px 11px;outline:none;width:100%;-webkit-appearance:none;appearance:none;transition:border-color .15s}
-.field input:focus,.field select:focus{border-color:var(--cyan);background:var(--s3)}
-.field input::placeholder{color:var(--dim2)}
-.field select option{background:var(--s1)}
+.field input:focus,.field select:focus{border-color:var(–cyan);background:var(–s3)}
+.field input::placeholder{color:var(–dim2)}
+.field select option{background:var(–s1)}
 .stabs{display:flex;gap:4px;margin-bottom:14px}
-.stab{flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--br);
-background:none;color:var(--dim);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s}
-.stab.on{background:rgba(0,207,255,.1);color:var(--cyan);border-color:rgba(0,207,255,.3)}
+.stab{flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(–br);
+background:none;color:var(–dim);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s}
+.stab.on{background:rgba(0,207,255,.1);color:var(–cyan);border-color:rgba(0,207,255,.3)}
 .panel{display:none}.panel.on{display:block}
-.note{font-size:9px;color:var(--dim);background:rgba(255,180,0,.04);border:1px solid rgba(255,180,0,.15);
+.note{font-size:9px;color:var(–dim);background:rgba(255,180,0,.04);border:1px solid rgba(255,180,0,.15);
 border-radius:7px;padding:8px 11px;margin-bottom:10px;line-height:1.7}
-.note strong{color:var(--gold)}
+.note strong{color:var(–gold)}
 .autobox{background:rgba(0,207,255,.04);border:1px solid rgba(0,207,255,.2);
 border-radius:8px;padding:10px 13px;margin-bottom:10px;
 display:flex;align-items:center;justify-content:space-between;gap:8px}
-.ab-lbl{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(--dim);
+.ab-lbl{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(–dim);
 text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
-.ab-sub{font-size:8px;color:var(--dim2)}
-.ab-val{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--cyan);font-weight:600}
+.ab-sub{font-size:8px;color:var(–dim2)}
+.ab-val{font-family:‘IBM Plex Mono’,monospace;font-size:15px;color:var(–cyan);font-weight:600}
 
 /* ─── RESULT ─── */
-.res{background:var(--s2);border:1px solid var(--br2);border-radius:10px;overflow:hidden}
-.rr{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:1px solid var(--br)}
+.res{background:var(–s2);border:1px solid var(–br2);border-radius:10px;overflow:hidden}
+.rr{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:1px solid var(–br)}
 .rr:last-child{border-bottom:none;background:rgba(0,207,255,.05)}
-.rl{font-size:10px;color:var(--dim);line-height:1.4}
-.rv{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;text-align:right;white-space:nowrap}
-.rv.cyan{color:var(--cyan)}.rv.green{color:var(--green)}.rv.red{color:var(--red)}
-.rv.gold{color:var(--gold)}.rv.dim{color:var(--dim)}
+.rl{font-size:10px;color:var(–dim);line-height:1.4}
+.rv{font-family:‘IBM Plex Mono’,monospace;font-size:13px;font-weight:500;text-align:right;white-space:nowrap}
+.rv.cyan{color:var(–cyan)}.rv.green{color:var(–green)}.rv.red{color:var(–red)}
+.rv.gold{color:var(–gold)}.rv.dim{color:var(–dim)}
 .rv.big{font-size:17px;font-weight:700}
-.sep{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--dim2);
-text-transform:uppercase;padding:4px 13px;background:rgba(255,255,255,.02);border-top:1px solid var(--br)}
+.sep{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(–dim2);
+text-transform:uppercase;padding:4px 13px;background:rgba(255,255,255,.02);border-top:1px solid var(–br)}
 
 /* ─── BOT ─── */
 #cd-wrap{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-#cd-bar{flex:1;height:3px;background:var(--br);border-radius:99px;overflow:hidden}
-#cd-fill{height:100%;background:var(--cyan);border-radius:99px;transition:width .1s linear;width:100%}
-#cd-txt{font-size:9px;color:var(--dim);font-family:'IBM Plex Mono',monospace;min-width:36px;text-align:right}
+#cd-bar{flex:1;height:3px;background:var(–br);border-radius:99px;overflow:hidden}
+#cd-fill{height:100%;background:var(–cyan);border-radius:99px;transition:width .1s linear;width:100%}
+#cd-txt{font-size:9px;color:var(–dim);font-family:‘IBM Plex Mono’,monospace;min-width:36px;text-align:right}
 
 .opp-card{border-radius:12px;padding:14px;margin-bottom:8px;border:1px solid;animation:sIn .3s ease}
 @keyframes sIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
 .opp-card.verde{background:linear-gradient(135deg,rgba(0,230,122,.07),rgba(0,207,255,.03));border-color:rgba(0,230,122,.3)}
 .opp-card.rojo{background:linear-gradient(135deg,rgba(255,59,92,.07),rgba(255,180,0,.03));border-color:rgba(255,59,92,.3)}
 .opp-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.07em;padding:4px 11px;border-radius:20px;margin-bottom:10px}
-.opp-badge.verde{background:rgba(0,230,122,.15);color:var(--green);border:1px solid rgba(0,230,122,.3)}
-.opp-badge.rojo{background:rgba(255,59,92,.15);color:var(--red);border:1px solid rgba(255,59,92,.3)}
+.opp-badge.verde{background:rgba(0,230,122,.15);color:var(–green);border:1px solid rgba(0,230,122,.3)}
+.opp-badge.rojo{background:rgba(255,59,92,.15);color:var(–red);border:1px solid rgba(255,59,92,.3)}
 .opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
 .oi{background:rgba(255,255,255,.03);border-radius:8px;padding:8px 10px}
-.oi-l{font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:.06em;text-transform:uppercase}
-.oi-v{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600}
-.oi-v.cyan{color:var(--cyan)}.oi-v.green{color:var(--green)}
-.oi-v.red{color:var(--red)}.oi-v.gold{color:var(--gold)}.oi-v.dim{color:var(--dim)}
+.oi-l{font-size:8px;color:var(–dim);margin-bottom:3px;letter-spacing:.06em;text-transform:uppercase}
+.oi-v{font-family:‘IBM Plex Mono’,monospace;font-size:13px;font-weight:600}
+.oi-v.cyan{color:var(–cyan)}.oi-v.green{color:var(–green)}
+.oi-v.red{color:var(–red)}.oi-v.gold{color:var(–gold)}.oi-v.dim{color:var(–dim)}
 .opp-profit{background:rgba(0,207,255,.06);border:1px solid rgba(0,207,255,.2);
 border-radius:8px;padding:10px 13px;display:flex;justify-content:space-between;align-items:center;margin-top:8px}
-.opp-profit-lbl{font-size:9px;color:var(--dim)}
-.opp-profit-sub{font-size:8px;color:var(--dim2);margin-top:2px}
-.opp-profit-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:700}
-.opp-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:9px;color:var(--dim)}
-.no-opp{text-align:center;padding:30px;color:var(--dim);font-size:11px;
-background:var(--s2);border-radius:10px;border:1px solid var(--br);line-height:1.9}
+.opp-profit-lbl{font-size:9px;color:var(–dim)}
+.opp-profit-sub{font-size:8px;color:var(–dim2);margin-top:2px}
+.opp-profit-val{font-family:‘IBM Plex Mono’,monospace;font-size:18px;font-weight:700}
+.opp-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:9px;color:var(–dim)}
+.no-opp{text-align:center;padding:30px;color:var(–dim);font-size:11px;
+background:var(–s2);border-radius:10px;border:1px solid var(–br);line-height:1.9}
 .schips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:9px}
-.sc{background:var(--s2);border:1px solid var(--br);border-radius:20px;
+.sc{background:var(–s2);border:1px solid var(–br);border-radius:20px;
 padding:3px 10px;display:flex;align-items:center;gap:4px;
-font-family:'IBM Plex Mono',monospace;color:var(--dim)}
-.sc.ok{border-color:rgba(0,230,122,.25);color:var(--green)}
-.sc.err{border-color:rgba(255,59,92,.25);color:var(--red)}
+font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
+.sc.ok{border-color:rgba(0,230,122,.25);color:var(–green)}
+.sc.err{border-color:rgba(255,59,92,.25);color:var(–red)}
 
 /* ─── CHART ─── */
 .chart-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap}
 .pills{display:flex;gap:3px}
-.pill{padding:5px 10px;border-radius:6px;border:1px solid var(--br);background:none;
-color:var(--dim);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
-.pill.on{background:var(--s3);color:var(--text);border-color:var(--br2)}
-.pill.pair.on{background:rgba(0,207,255,.1);color:var(--cyan);border-color:rgba(0,207,255,.3)}
+.pill{padding:5px 10px;border-radius:6px;border:1px solid var(–br);background:none;
+color:var(–dim);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.pill.on{background:var(–s3);color:var(–text);border-color:var(–br2)}
+.pill.pair.on{background:rgba(0,207,255,.1);color:var(–cyan);border-color:rgba(0,207,255,.3)}
 #chart-info-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;min-height:20px}
-#ci-label{font-size:9px;color:var(--dim)}
-#ci-pts{font-size:9px;color:var(--dim2)}
-#cross-info{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--cyan);font-weight:600}
-#chartWrap{width:100%;height:260px;background:var(--s1);border:1px solid var(--br);
+#ci-label{font-size:9px;color:var(–dim)}
+#ci-pts{font-size:9px;color:var(–dim2)}
+#cross-info{font-family:‘IBM Plex Mono’,monospace;font-size:11px;color:var(–cyan);font-weight:600}
+#chartWrap{width:100%;height:260px;background:var(–s1);border:1px solid var(–br);
 border-radius:10px;overflow:hidden;position:relative;margin-bottom:10px;
 cursor:crosshair;touch-action:none;user-select:none}
 #cv{display:block;position:absolute;top:0;left:0;pointer-events:none}
 #cvX{display:block;position:absolute;top:0;left:0;pointer-events:none}
 .ch-hint{position:absolute;inset:0;display:flex;flex-direction:column;
 align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px;pointer-events:none}
-.ch-hint p{font-size:11px;color:var(--dim);line-height:1.7}
-.ch-hint small{font-size:9px;color:var(--dim2)}
+.ch-hint p{font-size:11px;color:var(–dim);line-height:1.7}
+.ch-hint small{font-size:9px;color:var(–dim2)}
 .zone-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-.zone-inp{background:var(--s2);border:1px solid var(--br);border-radius:6px;
-color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;
+.zone-inp{background:var(–s2);border:1px solid var(–br);border-radius:6px;
+color:var(–text);font-family:‘IBM Plex Mono’,monospace;font-size:13px;
 padding:7px 10px;outline:none;width:95px;-webkit-appearance:none}
-.zone-inp:focus{border-color:var(--gold)}
+.zone-inp:focus{border-color:var(–gold)}
 .zone-btn{padding:7px 12px;border-radius:6px;border:1px solid rgba(255,180,0,.3);
-background:rgba(255,180,0,.07);color:var(--gold);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
+background:rgba(255,180,0,.07);color:var(–gold);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
 .chips{display:flex;gap:5px;flex-wrap:wrap;min-height:22px;margin-top:4px}
 .chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,180,0,.07);
 border:1px solid rgba(255,180,0,.2);border-radius:20px;padding:3px 10px;
-font-size:10px;color:var(--gold);font-family:'IBM Plex Mono',monospace}
-.chip-x{cursor:pointer;color:var(--dim);padding-left:2px}
-.chip-x:hover{color:var(--red)}
-.zone-tip{font-size:9px;color:var(--dim);line-height:1.7;margin-top:8px}
+font-size:10px;color:var(–gold);font-family:‘IBM Plex Mono’,monospace}
+.chip-x{cursor:pointer;color:var(–dim);padding-left:2px}
+.chip-x:hover{color:var(–red)}
+.zone-tip{font-size:9px;color:var(–dim);line-height:1.7;margin-top:8px}
 </style>
+
 </head>
 <body>
+
+<!-- TICKER -->
 
 <div id="ticker">
   <div class="tk">
@@ -201,132 +205,139 @@ font-size:10px;color:var(--gold);font-family:'IBM Plex Mono',monospace}
     <button class="tab"    onclick="goTab('chart',this)">📈 Mercado</button>
   </div>
 
+  <!-- ══ CALCULADORA ══ -->
+
   <div id="v-calc" class="view on">
     <div class="stabs">
       <button class="stab on" onclick="goPanel('st',this)">Estables · USDT</button>
       <button class="stab"    onclick="goPanel('btc',this)">BTC Loop</button>
     </div>
 
-    <div id="p-st" class="panel on">
-      <div class="card">
-        <div class="ctitle">Arbitraje Estable</div>
-        <div class="note">
-          ① Compras USDT pagando <strong>TC compra × (1+com%)</strong> por cada USDT.<br>
-          ② Vendes USDT recibiendo <strong>TC venta × (1−com%)</strong> por cada USDT.<br>
-          Ganancia = lo que cobras − lo que pagaste.
-        </div>
-        <div class="row">
-          <div class="field">
-            <label>Moneda Fiat</label>
-            <select id="s-fiat" onchange="calcS()">
-              <option value="VES">🇻🇪 VES (Bolívares)</option>
-              <option value="PEN">🇵🇪 PEN (Soles)</option>
-            </select>
-          </div>
-          <div class="field" style="max-width:100px">
-            <label>Com. P2P % (c/lado)</label>
-            <input type="number" id="s-com" value="0.10" step="0.01" inputmode="decimal" oninput="calcS()">
-          </div>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label>TC Compra (Fiat/USDT)</label>
-            <input type="number" id="s-buy" placeholder="618.00" step="0.01" inputmode="decimal" oninput="calcS()">
-          </div>
-          <div class="field">
-            <label>TC Venta (Fiat/USDT)</label>
-            <input type="number" id="s-sell" placeholder="635.00" step="0.01" inputmode="decimal" oninput="calcS()">
-          </div>
-        </div>
-        <div class="res">
-          <div class="sep">Lo que realmente pagas / cobras</div>
-          <div class="rr">
-            <span class="rl">Costo real por USDT comprado <small>(TC compra × (1 + com%))</small></span>
-            <span class="rv dim" id="s-r0">—</span>
-          </div>
-          <div class="rr">
-            <span class="rl">Ingreso real por USDT vendido <small>(TC venta × (1 − com%))</small></span>
-            <span class="rv dim" id="s-r00">—</span>
-          </div>
-          <div class="sep">Resultado del ciclo</div>
-          <div class="rr">
-            <span class="rl">Spread neto (ingreso − costo) por USDT</span>
-            <span class="rv" id="s-r1">—</span>
-          </div>
-          <div class="rr">
-            <span class="rl">Fiat ganado por cada 1.000 Fiat invertido</span>
-            <span class="rv" id="s-r2">—</span>
-          </div>
-          <div class="rr">
-            <span class="rl">USDT ganado neto por cada 100 USDT operados</span>
-            <span class="rv" id="s-r3">—</span>
-          </div>
-          <div class="rr">
-            <span class="rl">✦ Margen neto sobre inversión</span>
-            <span class="rv big" id="s-r4">—</span>
-          </div>
-        </div>
+```
+<div id="p-st" class="panel on">
+  <div class="card">
+    <div class="ctitle">Arbitraje Estable</div>
+    <div class="note">
+      ① Compras USDT pagando <strong>TC compra × (1+com%)</strong> por cada USDT.<br>
+      ② Vendes USDT recibiendo <strong>TC venta × (1−com%)</strong> por cada USDT.<br>
+      Ganancia = lo que cobras − lo que pagaste.
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Moneda Fiat</label>
+        <select id="s-fiat" onchange="calcS()">
+          <option value="VES">🇻🇪 VES (Bolívares)</option>
+          <option value="PEN">🇵🇪 PEN (Soles)</option>
+        </select>
+      </div>
+      <div class="field" style="max-width:100px">
+        <label>Com. P2P % (c/lado)</label>
+        <input type="number" id="s-com" value="0.10" step="0.01" inputmode="decimal" oninput="calcS()">
       </div>
     </div>
-
-    <div id="p-btc" class="panel">
-      <div class="card">
-        <div class="ctitle">BTC Loop</div>
-        <div class="note">
-          <strong>① Compras BTC en P2P con Fiat</strong> → pagas +com. P2P de entrada.<br>
-          <strong>② Vendes BTC en Spot</strong> → Binance descuenta 0.1% fijo.<br>
-          <strong>③ Vendes USDT en P2P</strong> → cobras −com. P2P de salida.<br>
-          La ganancia siempre se mide en USDT.
-        </div>
-        <div class="autobox">
-          <div>
-            <div class="ab-lbl"><span class="dot load" id="d-btc2"></span>BTC Spot · automático</div>
-            <div class="ab-sub" id="btc-src2">cargando…</div>
-          </div>
-          <div class="ab-val" id="v-spot">—</div>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label>Moneda Fiat</label>
-            <select id="v-fiat" onchange="calcV()">
-              <option value="VES">🇻🇪 VES</option>
-              <option value="PEN">🇵🇪 PEN</option>
-            </select>
-          </div>
-          <div class="field" style="max-width:100px">
-            <label>Com. P2P % (c/lado)</label>
-            <input type="number" id="v-com" value="0.10" step="0.01" inputmode="decimal" oninput="calcV()">
-          </div>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label>Precio BTC en P2P (Fiat/BTC)</label>
-            <input type="number" id="v-buy" placeholder="229000" step="100" inputmode="decimal" oninput="calcV()">
-          </div>
-          <div class="field">
-            <label>Vendo USDT a (Fiat/USDT)</label>
-            <input type="number" id="v-sell" placeholder="635" step="0.01" inputmode="decimal" oninput="calcV()">
-          </div>
-        </div>
-        <div class="res">
-          <div class="sep">① Compra BTC en P2P</div>
-          <div class="rr"><span class="rl">Precio BTC de mercado ahora (Spot × TC USDT)</span><span class="rv dim" id="v-r0">—</span></div>
-          <div class="rr"><span class="rl">Lo que pagas realmente (+com. P2P entrada)</span><span class="rv dim" id="v-r1">—</span></div>
-          <div class="rr"><span class="rl">TC efectivo de compra (Fiat por cada USD)</span><span class="rv cyan" id="v-r2">—</span></div>
-          <div class="rr"><span class="rl">Compraste el BTC a qué % del precio de mercado</span><span class="rv" id="v-r3">—</span></div>
-          <div class="sep">② Venta en Spot (−0.1% fijo Binance)</div>
-          <div class="rr"><span class="rl">USDT recibidos en Spot (neto de comisión Spot)</span><span class="rv cyan" id="v-r4">—</span></div>
-          <div class="sep">③ Venta USDT en P2P</div>
-          <div class="rr"><span class="rl">Fiat que recibes (−com. P2P salida)</span><span class="rv dim" id="v-r5">—</span></div>
-          <div class="sep">Resultado</div>
-          <div class="rr"><span class="rl">Ganancia bruta en Fiat</span><span class="rv" id="v-r6">—</span></div>
-          <div class="rr"><span class="rl">USDT ganados netos del ciclo completo</span><span class="rv" id="v-r7">—</span></div>
-          <div class="rr"><span class="rl">Inversión equivalente en USDT</span><span class="rv dim" id="v-r8">—</span></div>
-          <div class="rr"><span class="rl">✦ Margen neto sobre inversión (en USDT)</span><span class="rv big" id="v-r9">—</span></div>
-        </div>
+    <div class="row">
+      <div class="field">
+        <label>TC Compra (Fiat/USDT)</label>
+        <input type="number" id="s-buy" placeholder="618.00" step="0.01" inputmode="decimal" oninput="calcS()">
+      </div>
+      <div class="field">
+        <label>TC Venta (Fiat/USDT)</label>
+        <input type="number" id="s-sell" placeholder="635.00" step="0.01" inputmode="decimal" oninput="calcS()">
+      </div>
+    </div>
+    <div class="res">
+      <div class="sep">Lo que realmente pagas / cobras</div>
+      <div class="rr">
+        <span class="rl">Costo real por USDT comprado <small>(TC compra × (1 + com%))</small></span>
+        <span class="rv dim" id="s-r0">—</span>
+      </div>
+      <div class="rr">
+        <span class="rl">Ingreso real por USDT vendido <small>(TC venta × (1 − com%))</small></span>
+        <span class="rv dim" id="s-r00">—</span>
+      </div>
+      <div class="sep">Resultado del ciclo</div>
+      <div class="rr">
+        <span class="rl">Spread neto (ingreso − costo) por USDT</span>
+        <span class="rv" id="s-r1">—</span>
+      </div>
+      <div class="rr">
+        <span class="rl">Fiat ganado por cada 1.000 Fiat invertido</span>
+        <span class="rv" id="s-r2">—</span>
+      </div>
+      <div class="rr">
+        <span class="rl">USDT ganado neto por cada 100 USDT operados</span>
+        <span class="rv" id="s-r3">—</span>
+      </div>
+      <div class="rr">
+        <span class="rl">✦ Margen neto sobre inversión</span>
+        <span class="rv big" id="s-r4">—</span>
       </div>
     </div>
   </div>
+</div>
+
+<div id="p-btc" class="panel">
+  <div class="card">
+    <div class="ctitle">BTC Loop</div>
+    <div class="note">
+      <strong>① Compras BTC en P2P con Fiat</strong> → pagas +com. P2P de entrada.<br>
+      <strong>② Vendes BTC en Spot</strong> → Binance descuenta 0.1% fijo.<br>
+      <strong>③ Vendes USDT en P2P</strong> → cobras −com. P2P de salida.<br>
+      La ganancia siempre se mide en USDT.
+    </div>
+    <div class="autobox">
+      <div>
+        <div class="ab-lbl"><span class="dot load" id="d-btc2"></span>BTC Spot · automático</div>
+        <div class="ab-sub" id="btc-src2">cargando…</div>
+      </div>
+      <div class="ab-val" id="v-spot">—</div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Moneda Fiat</label>
+        <select id="v-fiat" onchange="calcV()">
+          <option value="VES">🇻🇪 VES</option>
+          <option value="PEN">🇵🇪 PEN</option>
+        </select>
+      </div>
+      <div class="field" style="max-width:100px">
+        <label>Com. P2P % (c/lado)</label>
+        <input type="number" id="v-com" value="0.10" step="0.01" inputmode="decimal" oninput="calcV()">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Precio BTC en P2P (Fiat/BTC)</label>
+        <input type="number" id="v-buy" placeholder="229000" step="100" inputmode="decimal" oninput="calcV()">
+      </div>
+      <div class="field">
+        <label>Vendo USDT a (Fiat/USDT)</label>
+        <input type="number" id="v-sell" placeholder="635" step="0.01" inputmode="decimal" oninput="calcV()">
+      </div>
+    </div>
+    <div class="res">
+      <div class="sep">① Compra BTC en P2P</div>
+      <div class="rr"><span class="rl">Precio BTC de mercado ahora (Spot × TC USDT)</span><span class="rv dim" id="v-r0">—</span></div>
+      <div class="rr"><span class="rl">Lo que pagas realmente (+com. P2P entrada)</span><span class="rv dim" id="v-r1">—</span></div>
+      <div class="rr"><span class="rl">TC efectivo de compra (Fiat por cada USD)</span><span class="rv cyan" id="v-r2">—</span></div>
+      <div class="rr"><span class="rl">Compraste el BTC a qué % del precio de mercado</span><span class="rv" id="v-r3">—</span></div>
+      <div class="sep">② Venta en Spot (−0.1% fijo Binance)</div>
+      <div class="rr"><span class="rl">USDT recibidos en Spot (neto de comisión Spot)</span><span class="rv cyan" id="v-r4">—</span></div>
+      <div class="sep">③ Venta USDT en P2P</div>
+      <div class="rr"><span class="rl">Fiat que recibes (−com. P2P salida)</span><span class="rv dim" id="v-r5">—</span></div>
+      <div class="sep">Resultado</div>
+      <div class="rr"><span class="rl">Ganancia bruta en Fiat</span><span class="rv" id="v-r6">—</span></div>
+      <div class="rr"><span class="rl">USDT ganados netos del ciclo completo</span><span class="rv" id="v-r7">—</span></div>
+      <div class="rr"><span class="rl">Inversión equivalente en USDT</span><span class="rv dim" id="v-r8">—</span></div>
+      <div class="rr"><span class="rl">✦ Margen neto sobre inversión (en USDT)</span><span class="rv big" id="v-r9">—</span></div>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ══ BOT P2P ══ -->
 
   <div id="v-bot" class="view">
     <div class="card">
@@ -391,22 +402,27 @@ font-size:10px;color:var(--gold);font-family:'IBM Plex Mono',monospace}
       </div>
     </div>
 
-    <div id="cd-wrap">
-      <div id="cd-bar"><div id="cd-fill"></div></div>
-      <div id="cd-txt">—</div>
-    </div>
+```
+<div id="cd-wrap">
+  <div id="cd-bar"><div id="cd-fill"></div></div>
+  <div id="cd-txt">—</div>
+</div>
 
-    <div id="bot-alerts">
-      <div class="no-opp">🤖 Configura el capital y el bot iniciará automáticamente.<br>
-        <small style="color:var(--dim2)">Ingresa el monto en Fiat que vas a vender.</small>
-      </div>
-    </div>
-
-    <div class="schips">
-      <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-txt">Esperando…</span></div>
-      <span id="sc-cyc" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
-    </div>
+<div id="bot-alerts">
+  <div class="no-opp">🤖 Configura el capital y el bot iniciará automáticamente.<br>
+    <small style="color:var(--dim2)">Ingresa el monto en Fiat que vas a vender.</small>
   </div>
+</div>
+
+<div class="schips">
+  <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-txt">Esperando…</span></div>
+  <span id="sc-cyc" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
+</div>
+```
+
+  </div>
+
+  <!-- ══ GRÁFICO ══ -->
 
   <div id="v-chart" class="view">
     <div class="chart-bar">
@@ -535,6 +551,35 @@ refreshP2P(); setInterval(refreshP2P, 60000);
 
 /* ════════════════════════════════════════════════
    BOT P2P
+
+   CÓMO FUNCIONA BINANCE P2P:
+   ─────────────────────────────────────────────
+   Cuando buscas en Binance P2P para VENDER tus USDT:
+   • Ves la "lista de compradores" = gente que COMPRA USDT
+   • En la API, esto es tradeType = "BUY" (el anunciante quiere BUY = comprar USDT)
+   • El precio que ofrece el comprador es lo que TÚ recibirías si le vendes directo
+   • Este es el precio ROJO (venta directa, 0% comisión taker)
+
+   Cuando buscas publicar TU ANUNCIO de venta:
+   • Te posicionas en la "lista de vendedores" = gente que VENDE USDT
+   • En la API, esto es tradeType = "SELL"
+   • El mejor precio de la tabla SELL te dice cuánto pagar para ser competitivo
+   • Este es el precio VERDE (anuncio propio, cobran maker fee)
+
+   DECISIÓN:
+   • precio_verde_neto = mejor_precio_SELL × (1 − fee_maker)
+   • precio_rojo_neto  = mejor_precio_BUY  (0% taker fee)
+   • Si rojo_neto >= verde_neto → VENTA DIRECTA (rojo) conviene
+   • Si verde_neto > rojo_neto  → ANUNCIO PROPIO (verde) conviene
+
+   RECOMPRA:
+   • Para recomprar USDT con los Fiat recibidos, tomas un anuncio de la tabla SELL
+   • Se usa el precio del anuncio en posición 1 (no el 0, para no toparse con el primero)
+   • Capital total Fiat / lote recompra = número de órdenes de recompra
+
+   publisherType:
+   • "merchant" → tabla de verificados (merchants)
+   • null + post-filter → tabla de no verificados
 ════════════════════════════════════════════════ */
 
 /* Llama a Binance P2P via proxy CORS */
@@ -544,7 +589,7 @@ async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
   const body = JSON.stringify({
     asset         : 'USDT',
     fiat,
-    tradeType,      
+    tradeType,      // "BUY"=compradores de USDT (tabla roja), "SELL"=vendedores (tabla verde)
     page          : 1,
     rows          : 10,
     payTypes      : bank ? [bank] : [],
@@ -553,6 +598,7 @@ async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
     transAmount   : capitalFiat > 0 ? String(capitalFiat) : '',
   });
 
+  // Intentar primero corsproxy.io, luego allorigins
   const proxies = [
     `https://corsproxy.io/?url=${encodeURIComponent('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search')}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search')}`,
@@ -570,13 +616,16 @@ async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
       const raw = await r.text();
       let d;
       try { d = JSON.parse(raw); } catch { continue; }
+      // allorigins envuelve en { contents: "..." }
       if (typeof d?.contents === 'string') {
         try { d = JSON.parse(d.contents); } catch { continue; }
       }
+      // Validar respuesta
       if (d?.code !== '000000' || !Array.isArray(d?.data) || d.data.length === 0) continue;
 
       let ads = d.data;
 
+      // Post-filtro para no-verificados: excluir merchants
       if (tableType === 'user') {
         const filtered = ads.filter(ad => {
           const ut = ad?.advertiser?.userType ?? ad?.userType;
@@ -591,6 +640,7 @@ async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
   return null;
 }
 
+/* Extrae precio de un objeto anuncio (soporta ambos formatos de respuesta) */
 function adPrice(ad)    { return parseFloat(ad?.adv?.price    ?? ad?.price    ?? 0); }
 function adNick(ad)     { return ad?.advertiser?.nickName     ?? ad?.nickName ?? 'N/A'; }
 function adMerchant(ad) { return (ad?.advertiser?.userType    ?? ad?.userType) === 'merchant'; }
@@ -613,55 +663,80 @@ async function runBotCycle() {
   dot('d-bot','load'); T('sc-txt','Consultando…');
 
   try {
-    const [tablaRojaVenta, tablaVerdeVenta, tablaRojaRecompra] = await Promise.all([
+    /* Fetch paralelo de ambas tablas:
+       tablaRoja (BUY)  = compradores de USDT → precio de venta directa
+       tablaVerde (SELL) = vendedores de USDT  → precio de referencia para anuncio propio */
+    const [tablaRoja, tablaVerde] = await Promise.all([
       binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType),
       binanceP2P(fiat, 'SELL', bank, capitalFiat, tableType),
-      binanceP2P(fiat, 'BUY',  bank, rebuyLot, tableType) 
     ]);
 
-    if (!tablaRojaVenta?.length && !tablaVerdeVenta?.length) {
+    if (!tablaRoja?.length && !tablaVerde?.length) {
       G('bot-alerts').innerHTML = `<div class="no-opp">❌ Sin datos de mercado para ${bank} · ${tableLabel}.<br>
-        <small style="color:var(--dim2)">Ajusta los montos, Binance no encuentra anuncios con esos límites.</small></div>`;
+        <small style="color:var(--dim2)">Puede que no haya anuncios con ese capital o banco. Reintentando…</small></div>`;
       dot('d-bot','err'); T('sc-txt','Sin datos'); return;
     }
 
-    const mejorRojoVenta   = tablaRojaVenta?.[0];
-    const precioRojoVenta  = adPrice(mejorRojoVenta);   
-    const mejorVerdeVenta  = tablaVerdeVenta?.[0];
-    const precioVerdeVenta = adPrice(mejorVerdeVenta);  
+    /* ── PRECIOS ──────────────────────────────────────────
+       tablaRoja (BUY): lista de compradores, ordenada de MAYOR a MENOR precio.
+       El primer anuncio (índice 0) ofrece el precio más alto = mejor para vender directo.
 
-    const rebuyAd        = tablaRojaRecompra?.[1] ?? tablaRojaRecompra?.[0];
-    const precioRecompra = adPrice(rebuyAd);
+       tablaVerde (SELL): lista de vendedores, ordenada de MENOR a MAYOR precio.
+       El primer anuncio (índice 0) tiene el precio más bajo = referencia de mercado.
+       Para publicar TU anuncio, necesitas estar DEBAJO del precio 0 o igualarlo.
+       El precio neto que recibirías = precio[0] × (1 - fee_maker)
 
-    if (!precioRojoVenta && !precioVerdeVenta) {
-      G('bot-alerts').innerHTML = `<div class="no-opp">⚠️ Precios en cero. El mercado está sin liquidez.</div>`;
+       Recompra: tomas el índice 1 de tablaVerde (no el 0 para no competirte contigo mismo).
+    ─────────────────────────────────────────────────────── */
+    const mejorRojo    = tablaRoja?.[0];
+    const precioRojo   = adPrice(mejorRojo);           // precio más alto que paga un comprador
+
+    const mejorVerde   = tablaVerde?.[0];
+    const precioVerde  = adPrice(mejorVerde);          // precio más bajo al que vende alguien
+
+    const rebuyAd      = tablaVerde?.[1] ?? tablaVerde?.[0];
+    const precioRebuy  = adPrice(rebuyAd);             // precio al que recompras USDT
+
+    if (!precioRojo && !precioVerde) {
+      G('bot-alerts').innerHTML = `<div class="no-opp">⚠️ Precios en cero. El mercado puede estar inactivo.</div>`;
       dot('d-bot','err'); return;
     }
 
-    const netoRojo   = precioRojoVenta; 
-    const netoVerde  = precioVerdeVenta * (1 - feeM); 
+    /* ── DECISIÓN ──────────────────────────────────────────
+       Neto rojo  = precioRojo              (0% comisión, venta directa)
+       Neto verde = precioVerde × (1−feeM)  (cobran maker fee al publicar anuncio)
+       Si neto rojo ≥ neto verde → conviene rojo (cobras igual o más sin esperar)
+       Si neto verde > neto rojo → conviene verde (mejor precio publicando propio)
+    ─────────────────────────────────────────────────────── */
+    const netoRojo   = precioRojo;
+    const netoVerde  = precioVerde * (1 - feeM);
 
-    const esRojo     = precioRojoVenta > 0 && netoRojo >= netoVerde;
-    const precioVentaRef      = esRojo ? precioRojoVenta : precioVerdeVenta;
-    const precioVentaEfectivo = esRojo ? netoRojo : netoVerde;
+    const esRojo     = precioRojo > 0 && netoRojo >= netoVerde;
 
-    const precioRebuyEfectivo = precioRecompra * (1 + feeM);
+    const precioVentaRef      = esRojo ? precioRojo   : precioVerde;
+    const precioVentaEfectivo = esRojo ? netoRojo      : netoVerde;
 
+    /* ── CÁLCULO DEL CICLO ─────────────────────────────────
+       USDT que vendes = capital Fiat / precio de venta referencia
+       Ganancia por USDT = precio efectivo de venta − precio de recompra
+       Ganancia total USDT = ganancia/USDT × USDT vendidos
+       Lotes de recompra = ceil(capital Fiat / lote de recompra)
+    ─────────────────────────────────────────────────────── */
     const usdtAVender     = precioVentaRef > 0 ? capitalFiat / precioVentaRef : 0;
-    const fiatRecibido    = usdtAVender * precioVentaEfectivo;
-    const usdtRecuperados = precioRebuyEfectivo > 0 ? fiatRecibido / precioRebuyEfectivo : 0;
+    const gananciaPorUsdt = precioRebuy    > 0 ? precioVentaEfectivo - precioRebuy : 0;
+    const gananciaTotalU  = gananciaPorUsdt * usdtAVender;
+    const gananciaPct     = precioRebuy    > 0 ? (gananciaPorUsdt / precioRebuy) * 100 : 0;
+    const lotesRecompra   = precioRebuy    > 0 ? Math.ceil(capitalFiat / rebuyLot) : 0;
 
-    const gananciaTotalU  = usdtRecuperados - usdtAVender; 
-    const gananciaPct     = usdtAVender > 0 ? (gananciaTotalU / usdtAVender) * 100 : 0;
-    const lotesRecompra   = rebuyLot > 0 ? Math.ceil(capitalFiat / rebuyLot) : 0;
-
+    /* ── RENDER ────────────────────────────────────────────── */
     const tipo      = esRojo ? 'rojo' : 'verde';
     const ts        = new Date().toLocaleTimeString('es-PE');
     const gainClass = gananciaPct > 0 ? 'green' : 'red';
 
+    // Explicación de por qué se recomienda esa opción
     const motivo = esRojo
-      ? `Rojo (Neto: ${sym} ${N(netoRojo,2)}) ≥ Verde (Neto: ${sym} ${N(netoVerde,2)}) → Dispara Venta Directa`
-      : `Verde (Neto: ${sym} ${N(netoVerde,2)}) > Rojo (Neto: ${sym} ${N(netoRojo,2)}) → Publica Anuncio de Venta`;
+      ? `Rojo (${sym} ${N(netoRojo,2)}) ≥ Verde neto (${sym} ${N(netoVerde,2)}) → cobras igual o más sin esperar comprador`
+      : `Verde neto (${sym} ${N(netoVerde,2)}) > Rojo (${sym} ${N(netoRojo,2)}) → publicar tu anuncio da más ganancia`;
 
     let html = `<div class="opp-card ${tipo}">`;
     html += `<div class="opp-badge ${tipo}">${esRojo ? '🔴 VENTA DIRECTA (Rojo)' : '🟢 ANUNCIO PROPIO (Verde)'}</div>`;
@@ -671,46 +746,44 @@ async function runBotCycle() {
     html += `<div style="font-size:8px;color:var(--dim2);margin-bottom:10px;line-height:1.6">💡 ${motivo}</div>`;
 
     html += `<div class="opp-grid">`;
-    if (esRojo && mejorRojoVenta) {
-      html += `<div class="oi"><div class="oi-l">👤 Comprador Activo</div>
-        <div class="oi-v cyan">${adNick(mejorRojoVenta)}${adMerchant(mejorRojoVenta)?' ✅':''}</div></div>`;
+    if (esRojo && mejorRojo) {
+      html += `<div class="oi"><div class="oi-l">👤 Comprador</div>
+        <div class="oi-v cyan">${adNick(mejorRojo)}${adMerchant(mejorRojo)?' ✅':''}</div></div>`;
     }
-    
     html += `
-      <div class="oi"><div class="oi-l">📤 Tu Precio Venta</div>
+      <div class="oi"><div class="oi-l">📤 Precio venta ref.</div>
         <div class="oi-v ${esRojo?'red':'green'}">${sym} ${N(precioVentaRef,2)}</div></div>
-      <div class="oi"><div class="oi-l">${esRojo?'💰 Neto sin Com.':'📉 Neto tras Com.'}</div>
+      <div class="oi"><div class="oi-l">${esRojo?'💰 Neto recibido':'📉 Neto tras com.'}</div>
         <div class="oi-v gold">${sym} ${N(precioVentaEfectivo,2)}</div></div>
-    `;
-
-    html += `
-      <div class="oi"><div class="oi-l">💵 Precio Recompra</div>
-        <div class="oi-v cyan">${sym} ${N(precioRecompra,2)}</div></div>
-      <div class="oi"><div class="oi-l">📈 Costo c/Comisión</div>
-        <div class="oi-v dim">${sym} ${N(precioRebuyEfectivo,2)}</div></div>
-    `;
-
-    html += `
-      <div class="oi"><div class="oi-l">📦 USDT en Riesgo</div>
+      <div class="oi"><div class="oi-l">💵 Precio recompra</div>
+        <div class="oi-v cyan">${sym} ${N(precioRebuy,2)}</div></div>
+      <div class="oi"><div class="oi-l">📦 USDT a vender</div>
         <div class="oi-v dim">${N(usdtAVender,2)} USDT</div></div>
-      <div class="oi"><div class="oi-l">🔄 Recompra (Lotes)</div>
+      <div class="oi"><div class="oi-l">🔄 Lotes recompra</div>
         <div class="oi-v gold">${lotesRecompra} × ${sym} ${N(rebuyLot,0)}</div></div>
     `;
-    html += `</div>`; 
+
+    // Mostrar también el precio de la otra opción para comparar
+    if (esRojo && precioVerde > 0) {
+      html += `<div class="oi"><div class="oi-l">📊 Verde (ref.)</div>
+        <div class="oi-v dim">${sym} ${N(precioVerde,2)}</div></div>`;
+    } else if (!esRojo && precioRojo > 0) {
+      html += `<div class="oi"><div class="oi-l">📊 Rojo (ref.)</div>
+        <div class="oi-v dim">${sym} ${N(precioRojo,2)}</div></div>`;
+    }
+
+    html += `</div>`; // /opp-grid
 
     html += `<div class="opp-profit">
       <div>
-        <div class="opp-profit-lbl">📊 Ganancia Neta del Ciclo (Ya libre de comisiones)</div>
-        <div class="opp-profit-sub">${sym} ${N(capitalFiat,0)} invertidos · Retorno en USDT</div>
+        <div class="opp-profit-lbl">📊 Ganancia estimada del ciclo completo</div>
+        <div class="opp-profit-sub">${sym} ${N(gananciaPorUsdt,2)} por USDT · ${N(gananciaTotalU,4)} USDT en total</div>
       </div>
-      <div style="text-align:right">
-        <div class="opp-profit-val ${gainClass}">${(gananciaTotalU>=0?'+':'')}${N(gananciaTotalU,2)} USDT</div>
-        <div style="font-size:11px; font-weight:bold; color:var(--${gainClass}); margin-top:2px;">${N(gananciaPct,2)}%</div>
-      </div>
+      <div class="opp-profit-val ${gainClass}">${N(gananciaPct,2)}%</div>
     </div>`;
 
     html += `<div class="opp-footer">
-      <span>Actualizado automáticamente</span>
+      <span>💰 Capital: ${sym} ${N(capitalFiat,0)}</span>
       <span>🕐 ${ts}</span>
     </div></div>`;
 
@@ -718,12 +791,12 @@ async function runBotCycle() {
     ST.bot.cycles++;
     T('sc-cyc', ST.bot.cycles + ' ciclo' + (ST.bot.cycles!==1?'s':''));
     dot('d-bot','ok');
-    T('sc-txt', `Monitoreando ${bank} ✓`);
+    T('sc-txt', `${fiat} · ${bank} · ${tableLabel} ✓`);
 
   } catch(e) {
-    G('bot-alerts').innerHTML = `<div class="no-opp">❌ Error de conexión: Binance bloqueó la consulta temporalmente.<br>
-      <small style="color:var(--dim2)">Reintentando en ${G('bot-interval').value}s… (A veces los proxies fallan por milisegundos)</small></div>`;
-    dot('d-bot','err'); T('sc-txt','Fallo Red');
+    G('bot-alerts').innerHTML = `<div class="no-opp">❌ Error: ${e.message}<br>
+      <small style="color:var(--dim2)">Reintentando en ${G('bot-interval').value}s…</small></div>`;
+    dot('d-bot','err'); T('sc-txt','Error');
   }
 }
 
@@ -755,11 +828,19 @@ function startCountdown(ms) {
 
 /* ════════════════════════════════════════════════
    CALCULADORA ESTABLES
+
+   Lógica correcta:
+   - Compras USDT pagando: TC_compra × (1 + com%)  Fiat por cada USDT
+     (la comisión se suma porque es un costo al comprar)
+   - Vendes USDT recibiendo: TC_venta × (1 - com%)  Fiat por cada USDT
+     (la comisión se resta porque es un costo al vender)
+   - Ganancia Fiat por USDT = ingreso − costo = [TC_v×(1−f)] − [TC_c×(1+f)]
+   - Margen % = ganancia / costo × 100
 ════════════════════════════════════════════════ */
 function calcS() {
-  const tc_c = +gv('s-buy')  || 0;   
-  const tc_v = +gv('s-sell') || 0;   
-  const com  = +gv('s-com')  || 0;   
+  const tc_c = +gv('s-buy')  || 0;   // TC compra (Fiat/USDT)
+  const tc_v = +gv('s-sell') || 0;   // TC venta  (Fiat/USDT)
+  const com  = +gv('s-com')  || 0;   // comisión % por lado
   const sym  = G('s-fiat').value === 'VES' ? 'Bs.' : 'S/';
 
   if (!tc_c || !tc_v) {
@@ -768,11 +849,24 @@ function calcS() {
   }
 
   const f    = com / 100;
+
+  // Lo que pagas realmente por cada USDT comprado (incluye comisión de entrada)
   const costo_por_usdt = tc_c * (1 + f);
+
+  // Lo que cobras realmente por cada USDT vendido (incluye comisión de salida)
   const ingreso_por_usdt = tc_v * (1 - f);
+
+  // Ganancia Fiat por USDT del ciclo completo
   const spread_neto = ingreso_por_usdt - costo_por_usdt;
+
+  // Ganancia Fiat por cada 1.000 Fiat invertidos
+  // Si invierto X Fiat, compro X/costo_por_usdt USDT, luego vendo y recibo (X/costo)*ingreso
   const ganancia_por_mil = (ingreso_por_usdt / costo_por_usdt - 1) * 1000;
+
+  // USDT ganado neto por cada 100 USDT operados
   const usdt_por_100 = (ingreso_por_usdt / costo_por_usdt - 1) * 100;
+
+  // Margen porcentual
   const margen = (ingreso_por_usdt / costo_por_usdt) - 1;
 
   rv('s-r0',  N(costo_por_usdt, 4)  + ' ' + sym + '/USDT', 'dim');
@@ -789,10 +883,18 @@ function calcS() {
 
 /* ════════════════════════════════════════════════
    CALCULADORA BTC LOOP
+
+   costReal = precioP2P × (1 + comP2P)    ← pagas más por la comisión de compra P2P
+   usdtOut  = spotBTC  × (1 − 0.001)      ← Spot descuenta 0.1% fijo
+   penBack  = usdtOut  × tcVenta × (1 − comP2P) ← recibes menos por comisión de venta P2P
+   gainFiat = penBack − costReal
+   gainUSDT = gainFiat / tcVenta
+   invUSDT  = costReal / tcVenta
+   margin   = gainUSDT / invUSDT × 100
 ════════════════════════════════════════════════ */
 function calcV() {
-  const pBTC  = +gv('v-buy')  || 0;   
-  const tcV   = +gv('v-sell') || 0;   
+  const pBTC  = +gv('v-buy')  || 0;   // precio del BTC en P2P (Fiat)
+  const tcV   = +gv('v-sell') || 0;   // TC al que venderás USDT (Fiat/USDT)
   const com   = +gv('v-com')  || 0;
   const spot  = ST.btc;
   const sym   = G('v-fiat').value === 'VES' ? 'Bs.' : 'S/';
@@ -801,13 +903,13 @@ function calcV() {
   if (!pBTC || !tcV || !spot) { ids.forEach(id => rv(id,'—','dim')); return; }
 
   const f        = com / 100;
-  const costReal = pBTC * (1 + f);             
-  const mktFiat  = spot * tcV;                 
-  const tcEf     = costReal / spot;            
-  const pctMkt   = pBTC / mktFiat * 100;       
-  const disc     = 100 - pctMkt;               
-  const usdtOut  = spot * (1 - 0.001);         
-  const fiatBack = usdtOut * tcV * (1 - f);    
+  const costReal = pBTC * (1 + f);             // Fiat que pagas realmente por 1 BTC
+  const mktFiat  = spot * tcV;                 // Precio de mercado del BTC en Fiat
+  const tcEf     = costReal / spot;            // TC efectivo de compra (Fiat/USD)
+  const pctMkt   = pBTC / mktFiat * 100;       // % del precio de mercado que pagaste
+  const disc     = 100 - pctMkt;               // % de descuento vs mercado
+  const usdtOut  = spot * (1 - 0.001);         // USDT recibidos en Spot (−0.1%)
+  const fiatBack = usdtOut * tcV * (1 - f);    // Fiat recibidos al vender USDT (−com P2P)
   const gainFiat = fiatBack - costReal;
   const gainUSDT = gainFiat / tcV;
   const invUSDT  = costReal / tcV;
@@ -878,6 +980,7 @@ function drawChart() {
   const tx = t => P.l + (t-pts[0].t)/span*cW;
   const ty = v => P.t + (1-(v-minV)/range)*cH;
 
+  // Grid
   ctx.strokeStyle='#182438'; ctx.lineWidth=1;
   for(let i=0;i<=5;i++){
     const y=P.t+i/5*cH, val=maxV-i/5*range;
@@ -885,7 +988,7 @@ function drawChart() {
     ctx.fillStyle='#506a8a'; ctx.font='10px IBM Plex Mono,monospace';
     ctx.textAlign='right'; ctx.fillText(N(val,2),P.l-4,y+3.5);
   }
-  
+  // Tiempo X
   const ticks=Math.min(5,pts.length-1);
   ctx.fillStyle='#506a8a'; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
   for(let i=0;i<=ticks;i++){
@@ -894,7 +997,7 @@ function drawChart() {
     ctx.fillText(d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'),
       tx(pts[idx].t), H-P.b+13);
   }
-  
+  // Área
   const grad=ctx.createLinearGradient(0,P.t,0,P.t+cH);
   grad.addColorStop(0,'rgba(0,207,255,.18)'); grad.addColorStop(.7,'rgba(0,207,255,.04)');
   grad.addColorStop(1,'rgba(0,207,255,0)');
@@ -903,18 +1006,18 @@ function drawChart() {
   ctx.lineTo(tx(pts[pts.length-1].t),P.t+cH);
   ctx.lineTo(tx(pts[0].t),P.t+cH);
   ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
-  
+  // Línea
   ctx.beginPath(); ctx.strokeStyle='#00cfff'; ctx.lineWidth=2; ctx.lineJoin='round';
   pts.forEach((p,i)=>i===0?ctx.moveTo(tx(p.t),ty(p.v)):ctx.lineTo(tx(p.t),ty(p.v)));
   ctx.stroke();
-  
+  // Punto final
   const lp=pts[pts.length-1];
   ctx.beginPath(); ctx.arc(tx(lp.t),ty(lp.v),4,0,Math.PI*2);
   ctx.fillStyle='#00cfff'; ctx.fill();
   ctx.strokeStyle='#03060e'; ctx.lineWidth=2; ctx.stroke();
   ctx.fillStyle='#00cfff'; ctx.font='bold 11px IBM Plex Mono,monospace';
   ctx.textAlign='left'; ctx.fillText(N(lp.v,3),P.l+4,P.t+13);
-  
+  // Zonas
   ctx.font='9px IBM Plex Mono,monospace';
   zs.forEach(z=>{
     if(z<minV||z>maxV) return;
@@ -927,6 +1030,7 @@ function drawChart() {
   });
 }
 
+/* Crosshair */
 function drawCrosshair(xPx, yPx) {
   const c = ST.chart;
   if (!c.pts?.length) return;
@@ -941,26 +1045,31 @@ function drawCrosshair(xPx, yPx) {
     ctx.restore(); T('cross-info',''); return;
   }
 
+  // Punto más cercano
   const tHov   = pts[0].t + (xPx-P.l)/cW*span;
   let   best   = pts[0], best_d = Infinity;
   pts.forEach(p=>{ const d=Math.abs(p.t-tHov); if(d<best_d){best_d=d;best=p;} });
   const snapX  = P.l + (best.t-pts[0].t)/span*cW;
   const snapY  = P.t + (1-(best.v-minV)/range)*cH;
 
+  // Líneas crosshair
   ctx.strokeStyle='rgba(220,232,248,.2)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
   ctx.beginPath(); ctx.moveTo(snapX,P.t); ctx.lineTo(snapX,P.t+cH); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(P.l,snapY); ctx.lineTo(W-P.r,snapY); ctx.stroke();
   ctx.setLineDash([]);
 
+  // Punto
   ctx.beginPath(); ctx.arc(snapX,snapY,5,0,Math.PI*2);
   ctx.fillStyle='#00cfff'; ctx.fill();
   ctx.strokeStyle='#03060e'; ctx.lineWidth=2; ctx.stroke();
 
+  // Label precio (eje Y derecho)
   ctx.fillStyle='#00cfff';
   ctx.beginPath(); roundRect(ctx, W-P.r+1, snapY-8, 54, 16, 3); ctx.fill();
   ctx.fillStyle='#03060e'; ctx.font='bold 10px IBM Plex Mono,monospace';
   ctx.textAlign='left'; ctx.fillText(N(best.v,3), W-P.r+5, snapY+4);
 
+  // Label tiempo (eje X inferior)
   const d   = new Date(best.t*1000);
   const tlb = d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
   ctx.fillStyle='rgba(80,106,138,.6)';
@@ -970,6 +1079,7 @@ function drawCrosshair(xPx, yPx) {
 
   ctx.restore();
 
+  // Info bar
   const sym  = ST.pair==='VES'?'Bs.':'S/';
   const dStr = d.toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit'})+' '+tlb;
   T('cross-info', sym+' '+N(best.v,3)+' · '+dStr);
@@ -1062,6 +1172,7 @@ function setTF(h,el) {
   el.classList.add('on'); clearCross(); drawChart();
 }
 
+/* Reloj + resize */
 setInterval(()=>T('tk-time',new Date().toLocaleTimeString('es-PE')),1000);
 let rT;
 window.addEventListener('resize',()=>{
@@ -1082,5 +1193,6 @@ function rv(id,t,c){ const e=G(id); if(!e) return; e.textContent=t; if(c) e.clas
 function ls(k,def){ try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;} }
 function sl(k,v)  { try{localStorage.setItem(k,JSON.stringify(v));}catch{} }
 </script>
+
 </body>
 </html>
