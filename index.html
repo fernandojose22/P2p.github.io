@@ -661,6 +661,9 @@ async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
   };
   const body = JSON.stringify(bodyObj);
 
+  // Cache buster: unique timestamp per request to prevent proxy/browser caching
+  const cacheBust = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
   // Try last-working proxy first, then others
   const ordered = [...PROXIES];
   if (ST.proxyOK) {
@@ -670,11 +673,20 @@ async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
 
   for (const proxy of ordered) {
     try {
-      const proxyUrl = proxy.url(targetUrl);
+      // Append cache buster to the proxy URL
+      const baseProxyUrl = proxy.url(targetUrl);
+      const separator = baseProxyUrl.includes('?') ? '&' : '?';
+      const proxyUrl = baseProxyUrl + separator + '_cb=' + cacheBust;
+
       const r = await fetch(proxyUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
         body,
+        cache: 'no-store',
         signal: AbortSignal.timeout(12000),
       });
       if (!r.ok) continue;
