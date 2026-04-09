@@ -725,9 +725,22 @@ async function runBotCycle() {
   dot('d-bot', 'load'); T('sc-txt', 'Consultando...');
 
   try {
-    const [tablaRoja, tablaVerde] = await Promise.all([
-      binanceP2P(fiat, 'BUY', bank, capitalFiat, tableType),
+    /* ── 3 consultas paralelas ──────────────────────────────
+       1. tablaRoja  (BUY)  → compradores de USDT → tu venta directa (taker, 0% fee)
+       2. tablaVerde (SELL) → vendedores de USDT  → referencia para tu anuncio (maker fee)
+       3. tablaRecompra (SELL) → vendedores de USDT filtrados por rebuyLot
+          → el mejor precio al que puedes COMPRAR USDT de vuelta como taker
+
+       CLAVE: La recompra es una consulta SEPARADA porque:
+       - El transAmount debe ser el lote de recompra, NO el capital total
+       - Binance filtra anuncios por monto, así que un lote chico
+         puede ver anuncios con mejor precio que el capital completo
+       - Se toma posicion 0 (mejor precio = mas barato para ti)
+    ─────────────────────────────────────────────────────── */
+    const [tablaRoja, tablaVerde, tablaRecompra] = await Promise.all([
+      binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType),
       binanceP2P(fiat, 'SELL', bank, capitalFiat, tableType),
+      binanceP2P(fiat, 'SELL', bank, rebuyLot,    tableType),  // <-- lote de recompra
     ]);
 
     // Show proxy status
@@ -745,15 +758,20 @@ async function runBotCycle() {
     const mejorVerde  = tablaVerde?.[0];
     const precioVerde = adPrice(mejorVerde);
 
-    // FIX: Robust rebuy ad selection
-    let rebuyAd, rebuyWarning = '';
-    if (tablaVerde && tablaVerde.length >= 2) {
-      rebuyAd = tablaVerde[1];
-    } else if (tablaVerde && tablaVerde.length === 1) {
+    /* ── Precio de recompra ────────────────────────────────
+       Usamos tablaRecompra (SELL filtrada por rebuyLot).
+       Posicion 0 = vendedor con precio mas bajo = mejor para ti como comprador.
+       Esto coincide con lo que ves en Binance al buscar "comprar USDT".
+    ─────────────────────────────────────────────────────── */
+    let rebuyAd = null, rebuyWarning = '', rebuyNick = '';
+    if (tablaRecompra && tablaRecompra.length > 0) {
+      rebuyAd = tablaRecompra[0];  // mejor precio (mas bajo)
+      rebuyNick = adNick(rebuyAd);
+    } else if (tablaVerde && tablaVerde.length > 0) {
+      // Fallback: si la consulta por lote no devolvio nada, usar tabla verde general
       rebuyAd = tablaVerde[0];
-      rebuyWarning = ' (unico anuncio disponible)';
-    } else {
-      rebuyAd = null;
+      rebuyWarning = ' (fallback tabla general)';
+      rebuyNick = adNick(rebuyAd);
     }
     const precioRebuy = rebuyAd ? adPrice(rebuyAd) : 0;
 
@@ -823,10 +841,14 @@ async function runBotCycle() {
         <div class="oi-v gold">${sym} ${N(precioVentaEfectivo,2)}</div></div>
       <div class="oi"><div class="oi-l">Precio recompra${rebuyWarning}</div>
         <div class="oi-v cyan">${sym} ${N(precioRebuy,2)}</div></div>
+      <div class="oi"><div class="oi-l">Vendedor recompra</div>
+        <div class="oi-v dim">${rebuyNick}${rebuyAd && adMerchant(rebuyAd) ? ' &#x2705;' : ''}</div></div>
       <div class="oi"><div class="oi-l">USDT a vender</div>
         <div class="oi-v dim">${N(usdtAVender,2)} USDT</div></div>
       <div class="oi"><div class="oi-l">Lotes recompra</div>
         <div class="oi-v gold">${lotesRecompra} x ${sym} ${N(rebuyLot,0)}</div></div>
+      <div class="oi"><div class="oi-l">Disp. recompra</div>
+        <div class="oi-v dim">${rebuyAd ? N(adAvailable(rebuyAd),2) + ' USDT' : 'N/A'}</div></div>
     `;
 
     if (esRojo && precioVerde > 0) {
