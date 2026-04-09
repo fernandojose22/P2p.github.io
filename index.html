@@ -339,85 +339,158 @@ font-size:10px;color:var(–gold);font-family:‘IBM Plex Mono’,monospace}
 
   <!-- ══ BOT P2P ══ -->
 
-  <div id="v-bot" class="view">
-    <div class="card">
-      <div class="ctitle">Configuración del Bot</div>
-      <div class="row">
-        <div class="field">
-          <label>Capital a vender (Fiat)</label>
-          <input type="number" id="bot-capital" placeholder="500000" step="1000"
-            inputmode="decimal" oninput="onCfgChange()">
-        </div>
-        <div class="field" style="max-width:105px">
-          <label>Moneda Fiat</label>
-          <select id="bot-fiat" onchange="onCfgChange()">
-            <option value="VES">🇻🇪 VES</option>
-            <option value="PEN">🇵🇪 PEN</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div class="field">
-          <label>Banco / Método Pago</label>
-          <select id="bot-bank" onchange="onCfgChange()">
-            <optgroup label="── Venezuela ──">
-              <option value="Banesco" selected>Banesco</option>
-              <option value="Bancamiga">Bancamiga</option>
-              <option value="PagoMovil">Pago Móvil</option>
-              <option value="Mercantil">Mercantil</option>
-              <option value="Provincial">Provincial</option>
-            </optgroup>
-            <optgroup label="── Perú ──">
-              <option value="CreditBankofPeru">BCP</option>
-              <option value="Yape">Yape</option>
-              <option value="Interbank">Interbank</option>
-              <option value="ScotiabankPeru">Scotiabank</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="field" style="max-width:140px">
-          <label>Tabla a operar</label>
-          <select id="bot-table" onchange="onCfgChange()">
-            <option value="merchant">✅ Verificados</option>
-            <option value="user">👤 No verificados</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div class="field">
-          <label>Com. Maker % (tu comisión)</label>
-          <input type="number" id="bot-fee" value="0.20" step="0.01"
-            inputmode="decimal" oninput="onCfgChange()">
-        </div>
-        <div class="field">
-          <label>Lote recompra (Fiat)</label>
-          <input type="number" id="bot-rebuy" value="30000" step="1000"
-            inputmode="decimal" oninput="onCfgChange()">
-        </div>
-        <div class="field" style="max-width:90px">
-          <label>Intervalo (seg)</label>
-          <input type="number" id="bot-interval" value="10" step="5" min="10"
-            inputmode="decimal" oninput="onCfgChange()">
-        </div>
-      </div>
-    </div>
+  async function runBotCycle() {
+  const fiat       = G('bot-fiat').value;
+  const bank       = G('bot-bank').value;
+  const tableType  = G('bot-table').value;
+  const capitalFiat= parseFloat(G('bot-capital').value) || 0;
+  const feeM       = (parseFloat(G('bot-fee').value)    || 0.20) / 100;
+  const rebuyLot   = parseFloat(G('bot-rebuy').value)   || 30000; // Ahora sí lo usamos
+  const sym        = fiat === 'VES' ? 'Bs.' : 'S/';
+  const tableLabel = tableType === 'merchant' ? '✅ Verificados' : '👤 No verificados';
 
-```
-<div id="cd-wrap">
-  <div id="cd-bar"><div id="cd-fill"></div></div>
-  <div id="cd-txt">—</div>
-</div>
+  if (capitalFiat <= 0) {
+    G('bot-alerts').innerHTML = `<div class="no-opp">⚠️ Ingresa el capital en ${sym} para iniciar el bot.</div>`;
+    return;
+  }
 
-<div id="bot-alerts">
-  <div class="no-opp">🤖 Configura el capital y el bot iniciará automáticamente.<br>
-    <small style="color:var(--dim2)">Ingresa el monto en Fiat que vas a vender.</small>
-  </div>
-</div>
+  dot('d-bot','load'); T('sc-txt','Consultando…');
 
-<div class="schips">
-  <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-txt">Esperando…</span></div>
-  <span id="sc-cyc" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
-</div>
+  try {
+    /* CORRECCIÓN 1: Tres consultas separadas. 
+       - 2 para Vender (con el capital ALTO)
+       - 1 para Recomprar (usando el lote BAJO de recompra) compitiendo en la tabla roja (BUY) */
+    const [tablaRojaVenta, tablaVerdeVenta, tablaRojaRecompra] = await Promise.all([
+      binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType),
+      binanceP2P(fiat, 'SELL', bank, capitalFiat, tableType),
+      binanceP2P(fiat, 'BUY',  bank, rebuyLot, tableType) // <--- Aquí estaba el error del límite
+    ]);
+
+    if (!tablaRojaVenta?.length && !tablaVerdeVenta?.length) {
+      G('bot-alerts').innerHTML = `<div class="no-opp">❌ Sin datos de mercado para ${bank} · ${tableLabel}.<br>
+        <small style="color:var(--dim2)">Ajusta los montos, Binance no encuentra anuncios con esos límites.</small></div>`;
+      dot('d-bot','err'); T('sc-txt','Sin datos'); return;
+    }
+
+    /* ── PRECIOS DE VENTA (Lote Alto) ── */
+    const mejorRojoVenta   = tablaRojaVenta?.[0];
+    const precioRojoVenta  = adPrice(mejorRojoVenta);   // Vender directo sin comisión
+    const mejorVerdeVenta  = tablaVerdeVenta?.[0];
+    const precioVerdeVenta = adPrice(mejorVerdeVenta);  // Publicar tu anuncio de venta
+
+    /* ── PRECIO DE RECOMPRA (Lote Pequeño) ── 
+       Tomamos la posición 1 (el segundo de la lista) para no competir 
+       contra alguien que esté reventando el precio. */
+    const rebuyAd        = tablaRojaRecompra?.[1] ?? tablaRojaRecompra?.[0];
+    const precioRecompra = adPrice(rebuyAd);
+
+    if (!precioRojoVenta && !precioVerdeVenta) {
+      G('bot-alerts').innerHTML = `<div class="no-opp">⚠️ Precios en cero. El mercado está sin liquidez.</div>`;
+      dot('d-bot','err'); return;
+    }
+
+    /* ── DECISIÓN ESTRATÉGICA (El Cerebro) ── */
+    const netoRojo   = precioRojoVenta; // Taker: 0% fee
+    const netoVerde  = precioVerdeVenta * (1 - feeM); // Maker: Descuenta comisión
+
+    const esRojo     = precioRojoVenta > 0 && netoRojo >= netoVerde;
+    const precioVentaRef      = esRojo ? precioRojoVenta : precioVerdeVenta;
+    const precioVentaEfectivo = esRojo ? netoRojo : netoVerde;
+
+    /* CORRECCIÓN 2: Precio de recompra con comisión incluida
+       Al poner anuncio de compra (Maker) Binance te cobra comisión, 
+       por ende cada USDT te cuesta un poco más en Fiat real. */
+    const precioRebuyEfectivo = precioRecompra * (1 + feeM);
+
+    /* CORRECCIÓN 3: Matemática exacta del ciclo en USDT 
+       1. Cuántos USDT vendes. 
+       2. Cuánto Fiat recibes. 
+       3. Cuántos USDT compras de vuelta con ese Fiat exacto. */
+    const usdtAVender     = precioVentaRef > 0 ? capitalFiat / precioVentaRef : 0;
+    const fiatRecibido    = usdtAVender * precioVentaEfectivo;
+    const usdtRecuperados = precioRebuyEfectivo > 0 ? fiatRecibido / precioRebuyEfectivo : 0;
+
+    const gananciaTotalU  = usdtRecuperados - usdtAVender; // Ganancia neta final en USDT
+    const gananciaPct     = usdtAVender > 0 ? (gananciaTotalU / usdtAVender) * 100 : 0;
+    const lotesRecompra   = rebuyLot > 0 ? Math.ceil(capitalFiat / rebuyLot) : 0;
+
+    /* ── RENDERIZADO EN PANTALLA ── */
+    const tipo      = esRojo ? 'rojo' : 'verde';
+    const ts        = new Date().toLocaleTimeString('es-PE');
+    const gainClass = gananciaPct > 0 ? 'green' : 'red';
+
+    const motivo = esRojo
+      ? `Rojo (Neto: ${sym} ${N(netoRojo,2)}) ≥ Verde (Neto: ${sym} ${N(netoVerde,2)}) → Dispara Venta Directa`
+      : `Verde (Neto: ${sym} ${N(netoVerde,2)}) > Rojo (Neto: ${sym} ${N(netoRojo,2)}) → Publica Anuncio de Venta`;
+
+    let html = `<div class="opp-card ${tipo}">`;
+    html += `<div class="opp-badge ${tipo}">${esRojo ? '🔴 VENTA DIRECTA (Rojo)' : '🟢 ANUNCIO PROPIO (Verde)'}</div>`;
+    html += `<div style="font-size:9px;color:var(--dim);margin-bottom:6px">
+      🏦 <strong style="color:var(--text)">${bank}</strong> &nbsp;·&nbsp; ${tableLabel}
+    </div>`;
+    html += `<div style="font-size:8px;color:var(--dim2);margin-bottom:10px;line-height:1.6">💡 ${motivo}</div>`;
+
+    html += `<div class="opp-grid">`;
+    if (esRojo && mejorRojoVenta) {
+      html += `<div class="oi"><div class="oi-l">👤 Comprador Activo</div>
+        <div class="oi-v cyan">${adNick(mejorRojoVenta)}${adMerchant(mejorRojoVenta)?' ✅':''}</div></div>`;
+    }
+    
+    // Panel de la Venta
+    html += `
+      <div class="oi"><div class="oi-l">📤 Tu Precio Venta</div>
+        <div class="oi-v ${esRojo?'red':'green'}">${sym} ${N(precioVentaRef,2)}</div></div>
+      <div class="oi"><div class="oi-l">${esRojo?'💰 Neto sin Com.':'📉 Neto tras Com.'}</div>
+        <div class="oi-v gold">${sym} ${N(precioVentaEfectivo,2)}</div></div>
+    `;
+
+    // Panel de la Recompra
+    html += `
+      <div class="oi"><div class="oi-l">💵 Precio Recompra</div>
+        <div class="oi-v cyan">${sym} ${N(precioRecompra,2)}</div></div>
+      <div class="oi"><div class="oi-l">📈 Costo c/Comisión</div>
+        <div class="oi-v dim">${sym} ${N(precioRebuyEfectivo,2)}</div></div>
+    `;
+
+    // Resumen Operativo
+    html += `
+      <div class="oi"><div class="oi-l">📦 USDT en Riesgo</div>
+        <div class="oi-v dim">${N(usdtAVender,2)} USDT</div></div>
+      <div class="oi"><div class="oi-l">🔄 Recompra (Lotes)</div>
+        <div class="oi-v gold">${lotesRecompra} × ${sym} ${N(rebuyLot,0)}</div></div>
+    `;
+    html += `</div>`; // Fin Grid
+
+    // Panel final de Ganancia
+    html += `<div class="opp-profit">
+      <div>
+        <div class="opp-profit-lbl">📊 Ganancia Neta del Ciclo (Ya libre de comisiones)</div>
+        <div class="opp-profit-sub">${sym} ${N(capitalFiat,0)} invertidos · Retorno en USDT</div>
+      </div>
+      <div style="text-align:right">
+        <div class="opp-profit-val ${gainClass}">${(gananciaTotalU>=0?'+':'')}${N(gananciaTotalU,2)} USDT</div>
+        <div style="font-size:11px; font-weight:bold; color:var(--${gainClass}); margin-top:2px;">${N(gananciaPct,2)}%</div>
+      </div>
+    </div>`;
+
+    html += `<div class="opp-footer">
+      <span>Actualizado automáticamente</span>
+      <span>🕐 ${ts}</span>
+    </div></div>`;
+
+    G('bot-alerts').innerHTML = html;
+    ST.bot.cycles++;
+    T('sc-cyc', ST.bot.cycles + ' ciclo' + (ST.bot.cycles!==1?'s':''));
+    dot('d-bot','ok');
+    T('sc-txt', `Monitoreando ${bank} ✓`);
+
+  } catch(e) {
+    G('bot-alerts').innerHTML = `<div class="no-opp">❌ Error de conexión: Binance bloqueó la consulta temporalmente.<br>
+      <small style="color:var(--dim2)">Reintentando en ${G('bot-interval').value}s… (A veces los proxies fallan por milisegundos)</small></div>`;
+    dot('d-bot','err'); T('sc-txt','Fallo Red');
+  }
+}
+
 ```
 
   </div>
