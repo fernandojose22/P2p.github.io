@@ -12,7 +12,7 @@
   --bg:#03060e;--s1:#080f1c;--s2:#0c1526;--s3:#111d30;
   --br:#182438;--br2:#1e2e45;
   --cyan:#00cfff;--gold:#ffb400;--green:#00e07a;--red:#ff3b5c;
-  --purple:#c084fc;--text:#dce8f8;--dim:#506a8a;--dim2:#243348;
+  --text:#dce8f8;--dim:#506a8a;--dim2:#243348;
 }
 html,body{min-height:100%;background:var(--bg);color:var(--text);
   font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden}
@@ -20,38 +20,36 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse 70% 50% at 0% 0%,rgba(0,207,255,.05),transparent 55%),
              radial-gradient(ellipse 50% 60% at 100% 100%,rgba(255,180,0,.04),transparent 55%)}
 
-/* ── TICKER ── */
+/* ─── TICKER ─── */
 #ticker{position:sticky;top:0;z-index:200;background:rgba(3,6,14,.97);
 backdrop-filter:blur(20px);border-bottom:1px solid var(–br);
 display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;height:52px}
 #ticker::-webkit-scrollbar{display:none}
 .tk{display:flex;flex-direction:column;justify-content:center;
-padding:0 12px;border-right:1px solid var(–br);flex:0 0 auto;min-width:100px}
+padding:0 13px;border-right:1px solid var(–br);flex:0 0 auto;min-width:108px}
 .tk-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(–dim);
 text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
-.tk-val{font-family:‘IBM Plex Mono’,monospace;font-size:14px;font-weight:600;white-space:nowrap}
-.tk-sub{font-size:7px;color:var(–dim);margin-top:1px}
-#tk-time{margin-left:auto;padding:0 10px;font-size:9px;color:var(–dim);
+.tk-val{font-family:‘IBM Plex Mono’,monospace;font-size:14px;font-weight:600;white-space:nowrap;transition:color .3s}
+.tk-sub{font-size:7px;color:var(–dim);margin-top:1px;white-space:nowrap}
+.tk-val.cyan{color:var(–cyan)}.tk-val.gold{color:var(–gold)}.tk-val.green{color:var(–green)}
+#tk-time{margin-left:auto;padding:0 12px;font-size:9px;color:var(–dim);
 font-family:‘IBM Plex Mono’,monospace;flex:0 0 auto}
-
-/* DOTS */
 .dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
 .dot.ok{background:var(–green);animation:pulse 1.5s infinite}
-.dot.err{background:var(–red)}
-.dot.load{background:var(–gold);animation:pulse .7s infinite}
+.dot.err{background:var(–red)}.dot.load{background:var(–gold);animation:pulse .7s infinite}
 @keyframes pulse{50%{opacity:.2;transform:scale(.5)}}
 
-/* ── SHELL ── */
+/* ─── SHELL ─── */
 #app{max-width:820px;margin:0 auto;padding:12px;position:relative;z-index:1}
 .logo-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.logo{font-size:15px;font-weight:700;color:var(–cyan)}
+.logo{font-size:15px;font-weight:700;color:var(–cyan);letter-spacing:-.3px}
 .logo b{color:var(–text)}
 .badge{font-size:8px;letter-spacing:.1em;border:1px solid var(–br2);
 border-radius:20px;padding:3px 9px;color:var(–dim);font-weight:600}
 
-/* ── MAIN TABS ── */
+/* ─── MAIN TABS ─── */
 .tabs{display:flex;gap:4px;margin-bottom:14px}
-.tab{flex:1;padding:8px 4px;border-radius:9px;border:1px solid var(–br);
+.tab{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(–br);
 background:var(–s1);color:var(–dim);font-family:inherit;
 font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
 .tab.on{background:var(–cyan);color:#03060e;border-color:var(–cyan)}
@@ -59,14 +57,13 @@ font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;text-align:cent
 .view{display:none}.view.on{display:block;animation:up .2s ease}
 @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* ── CARDS ── */
-.card{background:var(–s1);border:1px solid var(–br);border-radius:12px;
-padding:14px;margin-bottom:12px}
+/* ─── CARDS ─── */
+.card{background:var(–s1);border:1px solid var(–br);border-radius:12px;padding:14px;margin-bottom:12px}
 .ctitle{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(–dim);
 text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
 .ctitle::before{content:’’;width:3px;height:10px;border-radius:2px;background:var(–cyan);flex-shrink:0}
 
-/* ── INPUTS ── */
+/* ─── INPUTS ─── */
 .row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:80px}
 .field label{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(–dim);text-transform:uppercase}
@@ -79,97 +76,101 @@ transition:border-color .15s}
 .field input::placeholder{color:var(–dim2)}
 .field select option{background:var(–s1)}
 
-/* ── SUB TABS ── */
+/* ─── SUB TABS ─── */
 .stabs{display:flex;gap:4px;margin-bottom:14px}
 .stab{flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(–br);
-background:none;color:var(–dim);font-family:inherit;font-size:10px;
-font-weight:600;cursor:pointer;transition:all .2s}
+background:none;color:var(–dim);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s}
 .stab.on{background:rgba(0,207,255,.1);color:var(–cyan);border-color:rgba(0,207,255,.3)}
 .panel{display:none}.panel.on{display:block}
 
-/* ── NOTE ── */
+/* ─── NOTE ─── */
 .note{font-size:9px;color:var(–dim);background:rgba(255,180,0,.04);
 border:1px solid rgba(255,180,0,.15);border-radius:7px;
 padding:8px 11px;margin-bottom:10px;line-height:1.7}
 .note strong{color:var(–gold)}
 
-/* ── AUTOBOX ── */
+/* ─── AUTO BOX ─── */
 .autobox{background:rgba(0,207,255,.04);border:1px solid rgba(0,207,255,.2);
-border-radius:8px;padding:10px 12px;margin-bottom:10px;
+border-radius:8px;padding:10px 13px;margin-bottom:10px;
 display:flex;align-items:center;justify-content:space-between;gap:8px}
 .ab-lbl{font-size:9px;font-weight:700;letter-spacing:.09em;color:var(–dim);
 text-transform:uppercase;margin-bottom:2px;display:flex;align-items:center;gap:4px}
 .ab-sub{font-size:8px;color:var(–dim2)}
 .ab-val{font-family:‘IBM Plex Mono’,monospace;font-size:15px;color:var(–cyan);font-weight:600}
 
-/* ── RESULT ── */
+/* ─── RESULT ─── */
 .res{background:var(–s2);border:1px solid var(–br2);border-radius:10px;overflow:hidden}
 .rr{display:flex;justify-content:space-between;align-items:center;
 padding:10px 13px;border-bottom:1px solid var(–br)}
 .rr:last-child{border-bottom:none;background:rgba(0,207,255,.05)}
 .rl{font-size:10px;color:var(–dim);line-height:1.4}
-.rv{font-family:‘IBM Plex Mono’,monospace;font-size:13px;font-weight:500;
-text-align:right;white-space:nowrap}
-.rv.cyan{color:var(–cyan)}.rv.green{color:var(–green)}
-.rv.red{color:var(–red)}.rv.gold{color:var(–gold)}.rv.dim{color:var(–dim)}
+.rv{font-family:‘IBM Plex Mono’,monospace;font-size:13px;font-weight:500;text-align:right;white-space:nowrap}
+.rv.cyan{color:var(–cyan)}.rv.green{color:var(–green)}.rv.red{color:var(–red)}
+.rv.gold{color:var(–gold)}.rv.dim{color:var(–dim)}
 .rv.big{font-size:17px;font-weight:700;color:var(–cyan)}
 .sep{font-size:8px;font-weight:700;letter-spacing:.1em;color:var(–dim2);
-text-transform:uppercase;padding:4px 13px;
-background:rgba(255,255,255,.02);border-top:1px solid var(–br)}
+text-transform:uppercase;padding:4px 13px;background:rgba(255,255,255,.02);border-top:1px solid var(–br)}
 
-/* ── BOT OPORTUNIDADES ── */
-#bot-config{background:var(–s1);border:1px solid var(–br);border-radius:12px;
-padding:14px;margin-bottom:12px}
+/* ─── BOT ─── */
+/* Countdown */
+#cd-wrap{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+#cd-bar{flex:1;height:3px;background:var(–br);border-radius:99px;overflow:hidden}
+#cd-fill{height:100%;background:var(–cyan);border-radius:99px;transition:width .1s linear;width:100%}
+#cd-txt{font-size:9px;color:var(–dim);font-family:‘IBM Plex Mono’,monospace;min-width:36px;text-align:right}
 
-/* ALERT CARD */
-.alert-wrap{margin-bottom:10px;min-height:80px}
+/* Alerta */
 .opp-card{border-radius:12px;padding:14px;margin-bottom:8px;
 border:1px solid;animation:slideIn .3s ease}
-@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
-.opp-card.green{background:rgba(0,230,122,.06);border-color:rgba(0,230,122,.25)}
-.opp-card.red-card{background:rgba(255,59,92,.06);border-color:rgba(255,59,92,.25)}
-.opp-header{display:flex;align-items:center;justify-content:space-between;
-margin-bottom:10px;flex-wrap:wrap;gap:6px}
-.opp-badge{font-size:9px;font-weight:700;letter-spacing:.06em;
-padding:3px 10px;border-radius:20px}
-.opp-badge.green{background:rgba(0,230,122,.15);color:var(–green);border:1px solid rgba(0,230,122,.3)}
-.opp-badge.red-card{background:rgba(255,59,92,.15);color:var(–red);border:1px solid rgba(255,59,92,.3)}
-.opp-bank{font-size:9px;color:var(–dim);font-weight:600}
-.opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
-.opp-item{background:rgba(255,255,255,.03);border-radius:7px;padding:7px 9px}
-.opp-item-lbl{font-size:8px;color:var(–dim);margin-bottom:2px;letter-spacing:.06em;text-transform:uppercase}
-.opp-item-val{font-family:‘IBM Plex Mono’,monospace;font-size:12px;font-weight:600}
-.opp-item-val.green{color:var(–green)}.opp-item-val.cyan{color:var(–cyan)}
-.opp-item-val.gold{color:var(–gold)}.opp-item-val.red{color:var(–red)}
-.opp-profit{background:rgba(0,207,255,.06);border:1px solid rgba(0,207,255,.2);
-border-radius:8px;padding:9px 12px;display:flex;
-justify-content:space-between;align-items:center;margin-bottom:6px}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.opp-card.verde{background:linear-gradient(135deg,rgba(0,230,122,.07),rgba(0,207,255,.04));
+border-color:rgba(0,230,122,.3)}
+.opp-card.rojo{background:linear-gradient(135deg,rgba(255,59,92,.07),rgba(255,180,0,.04));
+border-color:rgba(255,59,92,.3)}
+
+.opp-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.07em;
+padding:4px 11px;border-radius:20px;margin-bottom:10px}
+.opp-badge.verde{background:rgba(0,230,122,.15);color:var(–green);border:1px solid rgba(0,230,122,.3)}
+.opp-badge.rojo{background:rgba(255,59,92,.15);color:var(–red);border:1px solid rgba(255,59,92,.3)}
+
+.opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.opp-item{background:rgba(255,255,255,.03);border-radius:8px;padding:8px 10px}
+.opp-item-lbl{font-size:8px;color:var(–dim);margin-bottom:3px;letter-spacing:.06em;text-transform:uppercase}
+.opp-item-val{font-family:‘IBM Plex Mono’,monospace;font-size:13px;font-weight:600}
+.opp-item-val.cyan{color:var(–cyan)}.opp-item-val.green{color:var(–green)}
+.opp-item-val.red{color:var(–red)}.opp-item-val.gold{color:var(–gold)}
+.opp-item-val.dim{color:var(–dim)}
+
+.opp-profit-row{background:rgba(0,207,255,.06);border:1px solid rgba(0,207,255,.2);
+border-radius:8px;padding:10px 13px;
+display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .opp-profit-lbl{font-size:9px;color:var(–dim)}
-.opp-profit-val{font-family:‘IBM Plex Mono’,monospace;font-size:15px;
-font-weight:700;color:var(–cyan)}
-.opp-ts{font-size:8px;color:var(–dim2);text-align:right}
+.opp-profit-sub{font-size:8px;color:var(–dim2);margin-top:2px}
+.opp-profit-val{font-family:‘IBM Plex Mono’,monospace;font-size:18px;font-weight:700}
+.opp-profit-val.green{color:var(–green)}.opp-profit-val.red{color:var(–red)}
 
-.no-opp{text-align:center;padding:28px;color:var(–dim);font-size:11px;
-background:var(–s2);border-radius:10px;border:1px solid var(–br)}
+.opp-footer{display:flex;justify-content:space-between;align-items:center;
+margin-top:8px;font-size:9px;color:var(–dim)}
 
-/* Countdown ring */
-#countdown-wrap{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-#countdown-bar{flex:1;height:3px;background:var(–br);border-radius:99px;overflow:hidden}
-#countdown-fill{height:100%;background:var(–cyan);border-radius:99px;
-transition:width .1s linear;width:100%}
-#countdown-txt{font-size:9px;color:var(–dim);font-family:‘IBM Plex Mono’,monospace;
-white-space:nowrap;min-width:48px;text-align:right}
+.no-opp{text-align:center;padding:30px;color:var(–dim);font-size:11px;
+background:var(–s2);border-radius:10px;border:1px solid var(–br);line-height:1.8}
 
-/* ── CHART ── */
-.chart-bar{display:flex;justify-content:space-between;align-items:center;
-margin-bottom:10px;gap:8px;flex-wrap:wrap}
+/* Status chips */
+.schips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;font-size:9px}
+.sc{background:var(–s2);border:1px solid var(–br);border-radius:20px;
+padding:3px 10px;display:flex;align-items:center;gap:4px;
+font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
+.sc.ok{border-color:rgba(0,230,122,.25);color:var(–green)}
+.sc.err{border-color:rgba(255,59,92,.25);color:var(–red)}
+
+/* ─── CHART ─── */
+.chart-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap}
 .pills{display:flex;gap:3px}
 .pill{padding:5px 10px;border-radius:6px;border:1px solid var(–br);background:none;
 color:var(–dim);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
 .pill.on{background:var(–s3);color:var(–text);border-color:var(–br2)}
 .pill.pair.on{background:rgba(0,207,255,.1);color:var(–cyan);border-color:rgba(0,207,255,.3)}
 #ci{font-size:9px;display:flex;justify-content:space-between;margin-bottom:6px;color:var(–dim)}
-#chartWrap{width:100%;height:240px;background:var(–s1);border:1px solid var(–br);
+#chartWrap{width:100%;height:250px;background:var(–s1);border:1px solid var(–br);
 border-radius:10px;overflow:hidden;position:relative;margin-bottom:10px}
 #cv{display:block;position:absolute;top:0;left:0}
 .ch-hint{position:absolute;inset:0;display:flex;flex-direction:column;
@@ -177,31 +178,21 @@ align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px
 .ch-hint p{font-size:11px;color:var(–dim);line-height:1.7}
 .ch-hint small{font-size:9px;color:var(–dim2)}
 
-/* ZONAS */
+/* Zonas */
 .zone-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .zone-inp{background:var(–s2);border:1px solid var(–br);border-radius:6px;
-color:var(–text);font-family:‘IBM Plex Mono’,monospace;font-size:12px;
+color:var(–text);font-family:‘IBM Plex Mono’,monospace;font-size:13px;
 padding:7px 10px;outline:none;width:95px;-webkit-appearance:none}
 .zone-inp:focus{border-color:var(–gold)}
 .zone-btn{padding:7px 12px;border-radius:6px;border:1px solid rgba(255,180,0,.3);
-background:rgba(255,180,0,.07);color:var(–gold);font-size:10px;
-font-weight:700;cursor:pointer;font-family:inherit}
+background:rgba(255,180,0,.07);color:var(–gold);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit}
 .chips{display:flex;gap:5px;flex-wrap:wrap;min-height:22px;margin-top:4px}
-.chip{display:inline-flex;align-items:center;gap:5px;
-background:rgba(255,180,0,.07);border:1px solid rgba(255,180,0,.2);
-border-radius:20px;padding:3px 10px;font-size:10px;
-color:var(–gold);font-family:‘IBM Plex Mono’,monospace}
+.chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,180,0,.07);
+border:1px solid rgba(255,180,0,.2);border-radius:20px;padding:3px 10px;
+font-size:10px;color:var(–gold);font-family:‘IBM Plex Mono’,monospace}
 .chip-x{cursor:pointer;color:var(–dim);padding-left:2px}
 .chip-x:hover{color:var(–red)}
 .zone-tip{font-size:9px;color:var(–dim);line-height:1.7;margin-top:8px}
-
-/* STATUS BAR */
-#sbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:9px}
-.sc{background:var(–s2);border:1px solid var(–br);border-radius:20px;
-padding:3px 10px;display:flex;align-items:center;gap:4px;
-font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
-.sc.ok{border-color:rgba(0,230,122,.2);color:var(–green)}
-.sc.err{border-color:rgba(255,59,92,.2);color:var(–red)}
 </style>
 
 </head>
@@ -212,18 +203,18 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
 <div id="ticker">
   <div class="tk">
     <div class="tk-lbl"><span class="dot load" id="d-btc"></span>BTC Spot</div>
-    <div class="tk-val" style="color:var(--cyan)" id="tk-btc">…</div>
+    <div class="tk-val cyan" id="tk-btc">…</div>
     <div class="tk-sub" id="tk-btc-src">cargando</div>
   </div>
   <div class="tk">
     <div class="tk-lbl"><span class="dot load" id="d-pen"></span>USDT P2P</div>
-    <div class="tk-val" style="color:var(--gold)" id="tk-pen">…</div>
-    <div class="tk-sub">PEN · P2P</div>
+    <div class="tk-val gold" id="tk-pen">…</div>
+    <div class="tk-sub">PEN · Binance P2P</div>
   </div>
   <div class="tk">
     <div class="tk-lbl"><span class="dot load" id="d-ves"></span>USDT P2P</div>
-    <div class="tk-val" style="color:var(--green)" id="tk-ves">…</div>
-    <div class="tk-sub">VES · P2P</div>
+    <div class="tk-val green" id="tk-ves">…</div>
+    <div class="tk-sub">VES · Binance P2P</div>
   </div>
   <div id="tk-time">—</div>
 </div>
@@ -237,28 +228,28 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
   </div>
 
   <div class="tabs">
-    <button class="tab on"  onclick="goTab('calc',this)">📊 Calc</button>
-    <button class="tab"     onclick="goTab('bot',this)">🤖 Bot P2P</button>
-    <button class="tab"     onclick="goTab('chart',this)">📈 Mercado</button>
+    <button class="tab on" onclick="goTab('calc',this)">📊 Calculadora</button>
+    <button class="tab"    onclick="goTab('bot',this)">🤖 Bot P2P</button>
+    <button class="tab"    onclick="goTab('chart',this)">📈 Mercado</button>
   </div>
 
-  <!-- ═══════════ CALCULADORA ═══════════ -->
+  <!-- ══════════ CALCULADORA ══════════ -->
 
   <div id="v-calc" class="view on">
     <div class="stabs">
-      <button class="stab on" onclick="goPanel('st',this)">Estables</button>
+      <button class="stab on" onclick="goPanel('st',this)">Estables · USDT</button>
       <button class="stab"    onclick="goPanel('btc',this)">BTC Loop</button>
     </div>
 
 ```
-<!-- ─── ESTABLES ─── -->
+<!-- ESTABLES -->
 <div id="p-st" class="panel on">
   <div class="card">
-    <div class="ctitle">Arbitraje Estable — PEN / VES</div>
+    <div class="ctitle">Arbitraje Estable</div>
     <div class="note">
       <strong>Comisión P2P en compra Y venta.</strong><br>
       TC efectivo compra = precio × (1+com%) → pagas más.<br>
-      TC efectivo venta = precio × (1−com%) → cobras menos.
+      TC efectivo venta  = precio × (1−com%) → cobras menos.
     </div>
     <div class="row">
       <div class="field">
@@ -275,11 +266,11 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
     </div>
     <div class="row">
       <div class="field">
-        <label>TC Compra</label>
+        <label>TC Compra (Fiat/USDT)</label>
         <input type="number" id="s-buy"  placeholder="620" step="0.001" inputmode="decimal" oninput="calcS()">
       </div>
       <div class="field">
-        <label>TC Venta</label>
+        <label>TC Venta (Fiat/USDT)</label>
         <input type="number" id="s-sell" placeholder="625" step="0.001" inputmode="decimal" oninput="calcS()">
       </div>
     </div>
@@ -295,7 +286,7 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
   </div>
 </div>
 
-<!-- ─── BTC LOOP ─── -->
+<!-- BTC LOOP -->
 <div id="p-btc" class="panel">
   <div class="card">
     <div class="ctitle">BTC Loop</div>
@@ -316,8 +307,8 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
       <div class="field">
         <label>Moneda Fiat</label>
         <select id="v-fiat" onchange="calcV()">
-          <option value="VES">🇻🇪 VES</option>
-          <option value="PEN">🇵🇪 PEN</option>
+          <option value="VES">🇻🇪 VES (Bolívares)</option>
+          <option value="PEN">🇵🇪 PEN (Soles)</option>
         </select>
       </div>
       <div class="field" style="max-width:90px">
@@ -338,13 +329,13 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
     <div class="res">
       <div class="sep">① Compra BTC en P2P</div>
       <div class="rr"><span class="rl">Precio BTC mercado (Spot × TC)</span><span class="rv dim" id="v-r0">—</span></div>
-      <div class="rr"><span class="rl">Lo que pagaste (+com. P2P)</span><span class="rv dim" id="v-r1">—</span></div>
+      <div class="rr"><span class="rl">Lo que pagaste (+com. P2P entrada)</span><span class="rv dim" id="v-r1">—</span></div>
       <div class="rr"><span class="rl">TC efectivo compra (Fiat/USD)</span><span class="rv cyan" id="v-r2">—</span></div>
-      <div class="rr"><span class="rl">% del precio de mercado</span><span class="rv" id="v-r3">—</span></div>
-      <div class="sep">② Venta BTC en Spot (−0.1%)</div>
+      <div class="rr"><span class="rl">% del precio de mercado que pagaste</span><span class="rv" id="v-r3">—</span></div>
+      <div class="sep">② Venta BTC en Spot (−0.1% fijo)</div>
       <div class="rr"><span class="rl">USDT recibidos en Spot</span><span class="rv cyan" id="v-r4">—</span></div>
       <div class="sep">③ Venta USDT en P2P</div>
-      <div class="rr"><span class="rl">Fiat de vuelta (−com. P2P)</span><span class="rv dim" id="v-r5">—</span></div>
+      <div class="rr"><span class="rl">Fiat de vuelta (−com. P2P salida)</span><span class="rv dim" id="v-r5">—</span></div>
       <div class="sep">Resultado final</div>
       <div class="rr"><span class="rl">Ganancia bruta Fiat</span><span class="rv" id="v-r6">—</span></div>
       <div class="rr"><span class="rl">USDT ganados netos</span><span class="rv" id="v-r7">—</span></div>
@@ -357,23 +348,22 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
 
   </div><!-- /calc -->
 
-  <!-- ═══════════ BOT P2P ═══════════ -->
+  <!-- ══════════ BOT P2P ══════════ -->
 
   <div id="v-bot" class="view">
 
 ```
-<!-- CONFIGURACIÓN -->
-<div id="bot-config" class="card">
+<!-- Config -->
+<div class="card">
   <div class="ctitle">Configuración del Bot</div>
   <div class="row">
     <div class="field">
-      <label>Capital disponible (USDT)</label>
-      <input type="number" id="bot-capital" placeholder="1300" step="10"
-        inputmode="decimal" value="1300" oninput="saveCfg()">
+      <label>Capital (USDT)</label>
+      <input type="number" id="bot-capital" value="1300" step="10" inputmode="decimal" oninput="onCfgChange()">
     </div>
     <div class="field">
       <label>Moneda Fiat</label>
-      <select id="bot-fiat" onchange="saveCfg()">
+      <select id="bot-fiat" onchange="onCfgChange()">
         <option value="VES">🇻🇪 VES · Bolívares</option>
         <option value="PEN">🇵🇪 PEN · Soles</option>
       </select>
@@ -381,16 +371,16 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
   </div>
   <div class="row">
     <div class="field">
-      <label>Método de Pago</label>
-      <select id="bot-bank" onchange="saveCfg()">
-        <optgroup label="Venezuela">
+      <label>Banco / Pago</label>
+      <select id="bot-bank" onchange="onCfgChange()">
+        <optgroup label="── Venezuela ──">
           <option value="Banesco" selected>Banesco</option>
           <option value="Bancamiga">Bancamiga</option>
           <option value="PagoMovil">Pago Móvil</option>
           <option value="Mercantil">Mercantil</option>
           <option value="Provincial">Provincial</option>
         </optgroup>
-        <optgroup label="Perú">
+        <optgroup label="── Perú ──">
           <option value="CreditBankofPeru">BCP</option>
           <option value="Yape">Yape</option>
           <option value="Interbank">Interbank</option>
@@ -400,45 +390,42 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
     </div>
     <div class="field" style="max-width:90px">
       <label>Com. Maker %</label>
-      <input type="number" id="bot-fee" value="0.20" step="0.01"
-        inputmode="decimal" oninput="saveCfg()">
+      <input type="number" id="bot-fee" value="0.20" step="0.01" inputmode="decimal" oninput="onCfgChange()">
     </div>
   </div>
   <div class="row">
     <div class="field">
       <label>Lote recompra (Fiat)</label>
-      <input type="number" id="bot-rebuy" placeholder="30000" step="1000"
-        inputmode="decimal" value="30000" oninput="saveCfg()">
+      <input type="number" id="bot-rebuy" value="30000" step="1000" inputmode="decimal" oninput="onCfgChange()">
     </div>
     <div class="field" style="max-width:90px">
       <label>Intervalo (seg)</label>
-      <input type="number" id="bot-interval" value="10" step="5" min="10"
-        inputmode="decimal" oninput="saveCfg()">
+      <input type="number" id="bot-interval" value="10" step="5" min="10" inputmode="decimal" oninput="onCfgChange()">
     </div>
   </div>
 </div>
 
-<!-- COUNTDOWN -->
-<div id="countdown-wrap">
-  <div id="countdown-bar"><div id="countdown-fill"></div></div>
-  <div id="countdown-txt">—</div>
+<!-- Countdown -->
+<div id="cd-wrap">
+  <div id="cd-bar"><div id="cd-fill"></div></div>
+  <div id="cd-txt">—</div>
 </div>
 
-<!-- ALERTAS -->
-<div class="alert-wrap" id="bot-alerts">
-  <div class="no-opp">🤖 Iniciando bot… toca en la pestaña para comenzar</div>
+<!-- Alerta principal -->
+<div id="bot-alerts">
+  <div class="no-opp">🤖 Bot iniciando…<br><small style="color:var(--dim2)">El primer análisis aparecerá en segundos.</small></div>
 </div>
 
-<!-- STATUS -->
-<div id="sbar">
-  <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-bot-txt">Iniciando…</span></div>
-  <span id="sbar-cycles" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
+<!-- Status -->
+<div class="schips" style="margin-top:10px">
+  <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-bot-txt">Conectando…</span></div>
+  <span id="sc-cycles" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
 </div>
 ```
 
   </div><!-- /bot -->
 
-  <!-- ═══════════ GRÁFICO ═══════════ -->
+  <!-- ══════════ GRÁFICO ══════════ -->
 
   <div id="v-chart" class="view">
     <div class="chart-bar">
@@ -460,8 +447,8 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
     <div id="chartWrap">
       <canvas id="cv"></canvas>
       <div class="ch-hint" id="ch-hint">
-        <p>📡 Acumulando datos de mercado…</p>
-        <small>El gráfico se construye con cada actualización P2P.</small>
+        <p>📡 Acumulando datos…<br>El gráfico se construye solo y se guarda en tu dispositivo.</p>
+        <small>Persiste aunque cierres la app.</small>
       </div>
     </div>
     <div class="card">
@@ -480,36 +467,54 @@ font-family:‘IBM Plex Mono’,monospace;color:var(–dim)}
 </div><!-- /app -->
 
 <script>
-/* ════════════════════════════════════════
-   ESTADO
-════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   ESTADO GLOBAL
+═══════════════════════════════════════════ */
 const ST = {
-  btc    : null,
-  p2p    : { PEN: null, VES: null },
-  pair   : 'PEN',
-  tfH    : 1,
-  hist   : ls('fp2p_h10', {}),
-  zones  : ls('fp2p_z10', {}),
-  botOn  : false,
-  cycles : 0,
-  botTimer: null,
-  cdTimer : null,
-  nextTs  : null,
+  btc     : null,
+  p2p     : { PEN:null, VES:null },
+  pair    : 'PEN',
+  tfH     : 1,
+  /* El historial se guarda en localStorage con clave separada por par,
+     para que persista entre sesiones */
+  zones   : ls('fp2p_zones11', {}),
+  bot     : { on:false, timer:null, cdTimer:null, cycles:0, interval:10000 },
 };
 
-/* ════════════════════════════════════════
-   BTC SPOT
-════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   HISTORIAL — lectura/escritura directa al localStorage
+   Se guarda cada punto apenas llega.
+═══════════════════════════════════════════ */
+function histGet(pair) {
+  try { return JSON.parse(localStorage.getItem('fp2p_hist_'+pair) || '[]'); }
+  catch { return []; }
+}
+function histAdd(pair, t, v) {
+  const arr  = histGet(pair);
+  const last = arr[arr.length - 1];
+  if (last && Math.abs(last.t - t) < 10 && last.v === v) return;
+  arr.push({ t, v });
+  // Mantener máximo 15000 puntos por par (~10 días a 1 punto/min)
+  if (arr.length > 15000) arr.splice(0, arr.length - 15000);
+  try { localStorage.setItem('fp2p_hist_'+pair, JSON.stringify(arr)); } catch {}
+}
+function histGet_filtered(pair, cutoff) {
+  return histGet(pair).filter(p => p.t >= cutoff);
+}
+
+/* ═══════════════════════════════════════════
+   BTC SPOT — Coinbase → Blockchain → Bitfinex
+═══════════════════════════════════════════ */
 const BTC_SRCS = [
-  { url:'https://api.coinbase.com/v2/prices/BTC-USD/spot',   p:d=>parseFloat(d.data.amount),   n:'Coinbase' },
-  { url:'https://blockchain.info/ticker?cors=true',           p:d=>d.USD.last,                  n:'Blockchain' },
-  { url:'https://api-pub.bitfinex.com/v2/ticker/tBTCUSD',    p:d=>d[6],                        n:'Bitfinex' },
+  { url:'https://api.coinbase.com/v2/prices/BTC-USD/spot',  p:d=>parseFloat(d.data.amount), n:'Coinbase'    },
+  { url:'https://blockchain.info/ticker?cors=true',          p:d=>d.USD.last,                n:'Blockchain'  },
+  { url:'https://api-pub.bitfinex.com/v2/ticker/tBTCUSD',   p:d=>d[6],                      n:'Bitfinex'    },
 ];
 async function fetchBTC() {
   dot('d-btc','load'); dot('d-btc2','load');
   for (const s of BTC_SRCS) {
     try {
-      const r = await fetch(s.url, { signal: AbortSignal.timeout(8000) });
+      const r = await fetch(s.url, { signal:AbortSignal.timeout(8000) });
       if (!r.ok) continue;
       const d = await r.json();
       const p = s.p(d);
@@ -529,60 +534,78 @@ async function fetchBTC() {
 fetchBTC();
 setInterval(fetchBTC, 30000);
 
-/* ════════════════════════════════════════
-   P2P — CriptoYa
-════════════════════════════════════════ */
-async function fetchCriptoYa(fiat) {
-  try {
-    const r = await fetch(`https://criptoya.com/api/usdt/${fiat.toLowerCase()}`,
-      { signal: AbortSignal.timeout(10000) });
-    if (!r.ok) return null;
-    const d = await r.json();
-    const prio = ['binancep2p','bybitp2p','okexp2p','bitgetp2p','bingxp2p'];
-    for (const k of prio) { if (d[k]?.ask > 0) return d[k].ask; }
-    for (const k of Object.keys(d)) { if (d[k]?.ask > 0) return d[k].ask; }
-    return null;
-  } catch { return null; }
-}
-
+/* ═══════════════════════════════════════════
+   P2P TICKER — CriptoYa
+═══════════════════════════════════════════ */
 async function refreshP2P() {
-  const [p, v] = await Promise.all([fetchCriptoYa('PEN'), fetchCriptoYa('VES')]);
+  async function get(fiat) {
+    try {
+      const r = await fetch(`https://criptoya.com/api/usdt/${fiat.toLowerCase()}`,
+        { signal:AbortSignal.timeout(10000) });
+      if (!r.ok) return null;
+      const d = await r.json();
+      const prio = ['binancep2p','bybitp2p','okexp2p','bitgetp2p','bingxp2p'];
+      for (const k of prio) { if (d[k]?.ask > 0) return d[k].ask; }
+      for (const k of Object.keys(d)) { if (d[k]?.ask > 0) return d[k].ask; }
+      return null;
+    } catch { return null; }
+  }
+  const [p, v] = await Promise.all([ get('PEN'), get('VES') ]);
   const now = tNow();
-  if (p) {
-    ST.p2p.PEN = p;
-    T('tk-pen', 'S/ '+N(p,3));
-    dot('d-pen','ok');
-    addHist('PEN', now, p);
-  } else dot('d-pen','err');
-  if (v) {
-    ST.p2p.VES = v;
-    T('tk-ves', 'Bs. '+N(v,2));
-    dot('d-ves','ok');
-    addHist('VES', now, v);
-  } else dot('d-ves','err');
+  if (p) { ST.p2p.PEN = p; T('tk-pen','S/ '+N(p,3)); dot('d-pen','ok'); histAdd('PEN',now,p); }
+  else     dot('d-pen','err');
+  if (v) { ST.p2p.VES = v; T('tk-ves','Bs. '+N(v,2)); dot('d-ves','ok'); histAdd('VES',now,v); }
+  else     dot('d-ves','err');
   if (G('v-chart').classList.contains('on')) drawChart();
 }
 refreshP2P();
 setInterval(refreshP2P, 60000);
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════
    BOT DE OPORTUNIDADES
-   Lógica:
-   - Verde (maker): publicas anuncio → cobran com. maker
-   - Rojo (taker):  tomas anuncio directo → 0% comisión
-   - Si precio_rojo >= precio_verde × (1 − fee_maker) → conviene rojo
-   - Ciclo: vender USDT → recibir Fiat → recomprar USDT en lotes
-════════════════════════════════════════ */
-let PROXIES = [
-  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+
+   TABLA VERDE = anuncios de VENTA de USDT (alguien VENDE USDT por Fiat)
+                 tradeType = 'SELL' (desde la perspectiva del anunciante)
+                 → este es el precio al que PUBLICARÍAS TU ANUNCIO como vendedor
+
+   TABLA ROJA  = anuncios de COMPRA de USDT (alguien COMPRA USDT con Fiat)
+                 tradeType = 'BUY' (desde la perspectiva del anunciante = comprador)
+                 → este es el precio al que puedes VENDER TUS USDT directo (taker)
+                 → el precio de VENTA DIRECTA — lo que te pagan
+
+   RECOMPRA    = tomar un anuncio de la TABLA VERDE (comprar USDT barato)
+                 → se toma el SEGUNDO anuncio (índice 1) para no solaparte
+                   con el mejor precio de la tabla verde
+
+   DECISIÓN:
+     precio_neto_verde = precio_verde_top × (1 − fee_maker)
+     precio_neto_rojo  = precio_rojo_top   [sin comisión]
+     Si precio_neto_rojo >= precio_neto_verde → conviene ROJA (venta directa)
+     Si precio_neto_verde > precio_neto_rojo  → conviene VERDE (anuncio propio)
+
+   GANANCIA POR USDT del ciclo completo:
+     precio_venta_efectivo − precio_recompra
+═══════════════════════════════════════════ */
+
+const PROXIES = [
+  (url,body) => ({
+    url: `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    opts: { method:'POST', headers:{'Content-Type':'application/json'}, body }
+  }),
+  (url,body) => ({
+    url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    opts: { method:'POST', headers:{'Content-Type':'application/json'}, body }
+  }),
 ];
 
-async function p2pFetch(asset, fiat, tradeType, bank) {
-  // Usamos el endpoint legacy POST via proxy
+async function p2pFetch(fiat, tradeType, bank) {
+  /* tradeType aquí es desde la perspectiva del ANUNCIANTE:
+     'SELL' = anuncios donde alguien VENDE USDT = TABLA VERDE
+     'BUY'  = anuncios donde alguien COMPRA USDT = TABLA ROJA */
   const target = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search';
-  const body = JSON.stringify({
-    asset, fiat, tradeType, page: 1, rows: 5,
+  const body   = JSON.stringify({
+    asset:'USDT', fiat, tradeType,
+    page:1, rows:5,
     payTypes: bank ? [bank] : [],
     merchantCheck: false,
     publisherType: null,
@@ -591,279 +614,292 @@ async function p2pFetch(asset, fiat, tradeType, bank) {
 
   for (const proxyFn of PROXIES) {
     try {
-      const proxyUrl = proxyFn(target);
-      const r = await fetch(proxyUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-        signal: AbortSignal.timeout(10000),
-      });
+      const { url, opts } = proxyFn(target, body);
+      const r = await fetch(url, { ...opts, signal:AbortSignal.timeout(12000) });
       if (!r.ok) continue;
       const raw = await r.text();
-      // allorigins envuelve en { contents }
       let d;
       try { d = JSON.parse(raw); } catch { continue; }
-      if (d.contents) { try { d = JSON.parse(d.contents); } catch { continue; } }
-      if (d?.code === '000000' && d?.data?.length) return d;
+      // allorigins envuelve en { contents }
+      if (typeof d.contents === 'string') {
+        try { d = JSON.parse(d.contents); } catch { continue; }
+      }
+      if (d?.code === '000000' && Array.isArray(d?.data) && d.data.length > 0) return d.data;
     } catch {}
   }
 
-  // Fallback: endpoint GET público (sin filtro banco)
+  // Fallback GET público (sin filtro banco)
   try {
-    const getUrl = `https://www.binance.com/bapi/c2c/v1/public/c2c/agent/ad-list?fiat=${fiat}&asset=${asset}&tradeType=${tradeType}&limit=5`;
+    const getUrl = `https://www.binance.com/bapi/c2c/v1/public/c2c/agent/ad-list?fiat=${fiat}&asset=USDT&tradeType=${tradeType}&limit=5`;
     for (const proxyFn of PROXIES) {
       try {
-        const r = await fetch(proxyFn(getUrl), { signal: AbortSignal.timeout(10000) });
+        const { url } = proxyFn(getUrl, '');
+        const r = await fetch(url, { signal:AbortSignal.timeout(10000) });
         if (!r.ok) continue;
         const raw = await r.text();
         let d; try { d = JSON.parse(raw); } catch { continue; }
-        if (d.contents) { try { d = JSON.parse(d.contents); } catch { continue; } }
-        if (d?.data?.length) return d;
+        if (typeof d.contents === 'string') { try { d = JSON.parse(d.contents); } catch { continue; } }
+        if (Array.isArray(d?.data) && d.data.length > 0) return d.data;
+        // Algunos wrappers lo traen diferente
+        if (Array.isArray(d) && d.length > 0) return d;
       } catch {}
     }
   } catch {}
   return null;
 }
 
+/* Extrae precio de un objeto anuncio (maneja ambos formatos) */
+function adPrice(ad) {
+  return parseFloat(ad?.adv?.price ?? ad?.price ?? 0);
+}
+function adNick(ad) {
+  return ad?.advertiser?.nickName ?? ad?.nickName ?? 'N/A';
+}
+function adIsMerchant(ad) {
+  return (ad?.advertiser?.userType ?? ad?.userType) === 'merchant';
+}
+function adAvail(ad) {
+  return parseFloat(ad?.adv?.surplusAmount ?? ad?.surplusAmount ?? 0);
+}
+
 async function runBotCycle() {
   const fiat    = G('bot-fiat').value;
   const bank    = G('bot-bank').value;
   const capital = parseFloat(G('bot-capital').value) || 1300;
-  const feeM    = parseFloat(G('bot-fee').value) / 100 || 0.002;
+  const feeM    = (parseFloat(G('bot-fee').value) || 0.20) / 100;
   const rebuyLot= parseFloat(G('bot-rebuy').value) || 30000;
   const sym     = fiat === 'VES' ? 'Bs.' : 'S/';
 
   dot('d-bot','load');
-  T('sc-bot-txt','Consultando mercado…');
+  T('sc-bot-txt','Consultando…');
 
   try {
-    // Tabla VERDE = vendedores USDT (SELL) → precio al que tú publicarías tu anuncio
-    // Tabla ROJA  = compradores USDT (BUY) → precio al que venderías directo
-    const [verde, rojo] = await Promise.all([
-      p2pFetch('USDT', fiat, 'SELL', bank),
-      p2pFetch('USDT', fiat, 'BUY',  bank),
+    /* Fetch paralelo:
+       tablaVerde = SELL = anuncios de vendedores de USDT
+       tablaRoja  = BUY  = anuncios de compradores de USDT */
+    const [tablaVerde, tablaRoja] = await Promise.all([
+      p2pFetch(fiat, 'SELL', bank),   // vendedores USDT → precio al que publicas tu anuncio
+      p2pFetch(fiat, 'BUY',  bank),   // compradores USDT → precio venta directa (taker)
     ]);
 
-    if (!verde?.data?.length && !rojo?.data?.length) {
-      showAlert('err', null, fiat);
+    if (!tablaVerde?.length && !tablaRoja?.length) {
+      G('bot-alerts').innerHTML = `<div class="no-opp">❌ Sin datos disponibles.<br><small style="color:var(--dim2)">Verifica conexión. Reintentando en ${G('bot-interval').value}s…</small></div>`;
       dot('d-bot','err');
-      T('sc-bot-txt', 'Sin datos del mercado');
+      T('sc-bot-txt', 'Sin datos · ' + bank);
       return;
     }
 
-    // Mejor precio verde (posición 0 = más bajo = referencia de mercado)
-    const topVerde   = verde?.data?.[0];
-    const priceVerde = topVerde ? parseFloat(topVerde.adv?.price || topVerde.price || 0) : 0;
+    /* ── PRECIOS ── */
+    // Mejor precio VERDE = precio más bajo de la tabla de vendedores
+    // (es el precio de referencia donde publicarías TU anuncio)
+    const topVerde   = tablaVerde?.[0];
+    const priceVerde = adPrice(topVerde);
 
-    // Mejor precio rojo (posición 0 = más alto = comprador que paga más)
-    const topRojo    = rojo?.data?.[0];
-    const priceRojo  = topRojo  ? parseFloat(topRojo.adv?.price  || topRojo.price  || 0) : 0;
+    // Mejor precio ROJO = precio más alto que ofrece un comprador
+    // (venta directa, sin comisión)
+    const topRojo    = tablaRoja?.[0];
+    const priceRojo  = adPrice(topRojo);
 
-    // Precio de recompra USDT (posición 1-2 de tabla verde para no chocar con el mejor)
-    const rebuyAd    = verde?.data?.[1] || verde?.data?.[0];
-    const rebuyPrice = rebuyAd ? parseFloat(rebuyAd.adv?.price || rebuyAd.price || 0) : 0;
+    // Precio de RECOMPRA = segundo anuncio de la tabla verde
+    // (compramos USDT barato en la tabla verde)
+    const rebuyAd    = tablaVerde?.[1] ?? tablaVerde?.[0];
+    const priceRebuy = adPrice(rebuyAd);
 
-    if (!priceVerde && !priceRojo) { showAlert('err', null, fiat); return; }
+    if (priceVerde === 0 && priceRojo === 0) {
+      G('bot-alerts').innerHTML = `<div class="no-opp">⚠️ Datos recibidos pero precios en cero.<br><small style="color:var(--dim2)">El mercado puede estar inactivo.</small></div>`;
+      dot('d-bot','err');
+      return;
+    }
 
-    // DECISIÓN: rojo vs verde
-    const netVerde   = priceVerde * (1 - feeM);   // lo que cobras neto publicando
-    const netRojo    = priceRojo;                   // lo que cobras taker (0% fee)
-    const useRojo    = priceRojo > 0 && netRojo >= netVerde;
+    /* ── DECISIÓN ── */
+    // Precio neto que recibirías por cada USDT en cada opción
+    const netVerde = priceVerde * (1 - feeM);   // publicando anuncio, cobran maker fee
+    const netRojo  = priceRojo;                  // venta directa, 0% taker fee
 
-    const effectivePrice = useRojo ? netRojo : netVerde;
-    const refPrice       = useRojo ? priceRojo : priceVerde;
+    const esRojo = priceRojo > 0 && netRojo >= netVerde;
 
-    // Ganancia por USDT del ciclo completo
-    const gainPerUsdt    = rebuyPrice > 0 ? effectivePrice - rebuyPrice : 0;
-    const gainPct        = rebuyPrice > 0 ? gainPerUsdt / rebuyPrice * 100 : 0;
+    const precioVentaEfectivo = esRojo ? netRojo    : netVerde;
+    const precioVentaRef      = esRojo ? priceRojo  : priceVerde;
 
-    // Capital en Fiat
-    const capitalFiat    = capital * refPrice;
-    const rebuysNeeded   = Math.ceil(capitalFiat / rebuyLot);
+    /* ── GANANCIA DEL CICLO ── */
+    // Ganancia bruta por USDT = precio al que vendemos − precio al que recompramos
+    const gananciaFiatPorUsdt = priceRebuy > 0 ? precioVentaEfectivo - priceRebuy : 0;
+    const gananciaPct         = priceRebuy > 0 ? (gananciaFiatPorUsdt / priceRebuy) * 100 : 0;
 
-    // Nombre del trader
-    const traderName = useRojo
-      ? (topRojo?.advertiser?.nickName || topRojo?.nickName || 'N/A')
-      : (topVerde?.advertiser?.nickName || topVerde?.nickName || 'TU ANUNCIO');
-    const isMerchant = useRojo
-      ? (topRojo?.advertiser?.userType === 'merchant' || topRojo?.userType === 'merchant')
-      : null;
+    // Capital en Fiat y lotes de recompra
+    const capitalFiat   = capital * precioVentaRef;
+    const lotesRecompra = priceRebuy > 0 ? Math.ceil(capitalFiat / rebuyLot) : 0;
 
-    const opp = {
-      useRojo, fiat, sym, bank, traderName, isMerchant,
-      sellRate    : refPrice,
-      netSellRate : effectivePrice,
-      rebuyRate   : rebuyPrice,
-      gainPct,
-      gainPerUsdt,
-      capital, capitalFiat,
-      rebuysNeeded,
-      rebuyLot,
-      feeM,
-    };
+    /* ── CONSTRUCCIÓN DE ALERTA ── */
+    const tipo      = esRojo ? 'rojo' : 'verde';
+    const ts        = new Date().toLocaleTimeString('es-PE');
+    const gainClass = gananciaPct > 0 ? 'green' : 'red';
 
-    showAlert('ok', opp, fiat);
-    ST.cycles++;
-    T('sbar-cycles', ST.cycles + ' ciclo' + (ST.cycles !== 1 ? 's' : ''));
+    let html = `<div class="opp-card ${tipo}">`;
+
+    // Badge
+    html += `<div class="opp-badge ${tipo}">${esRojo ? '🔴 VENTA DIRECTA (Rojo)' : '🟢 ANUNCIO PROPIO (Verde)'}</div>`;
+
+    // Banco
+    html += `<div style="font-size:9px;color:var(--dim);margin-bottom:10px">🏦 Método de Pago: <strong style="color:var(--text)">${bank}</strong></div>`;
+
+    // Grid datos
+    html += `<div class="opp-grid">`;
+
+    // Solo muestra nombre del trader cuando es VENTA DIRECTA (rojo)
+    if (esRojo && topRojo) {
+      html += `
+        <div class="opp-item">
+          <div class="opp-item-lbl">👤 Comprador</div>
+          <div class="opp-item-val cyan">${adNick(topRojo)} ${adIsMerchant(topRojo) ? '✅' : ''}</div>
+        </div>`;
+    }
+
+    html += `
+      <div class="opp-item">
+        <div class="opp-item-lbl">📤 Tasa de Venta</div>
+        <div class="opp-item-val ${esRojo ? 'red' : 'green'}">${sym} ${N(precioVentaRef,2)}</div>
+      </div>
+      <div class="opp-item">
+        <div class="opp-item-lbl">${esRojo ? '📥 Neto Recibido' : '📉 Neto tras com.'}</div>
+        <div class="opp-item-val gold">${sym} ${N(precioVentaEfectivo,2)}</div>
+      </div>
+      <div class="opp-item">
+        <div class="opp-item-lbl">💵 Recompra USDT</div>
+        <div class="opp-item-val cyan">${sym} ${N(priceRebuy,2)}</div>
+      </div>
+      <div class="opp-item">
+        <div class="opp-item-lbl">🔄 Lotes recompra</div>
+        <div class="opp-item-val gold">${lotesRecompra} × ${sym} ${N(rebuyLot,0)}</div>
+      </div>`;
+
+    if (esRojo && adAvail(topRojo) > 0) {
+      html += `
+        <div class="opp-item">
+          <div class="opp-item-lbl">📦 USDT disponibles</div>
+          <div class="opp-item-val dim">${N(adAvail(topRojo),2)} USDT</div>
+        </div>`;
+    }
+
+    html += `</div>`; // /opp-grid
+
+    // Ganancia
+    html += `
+      <div class="opp-profit-row">
+        <div>
+          <div class="opp-profit-lbl">📊 Ganancia estimada del ciclo</div>
+          <div class="opp-profit-sub">${sym} ${N(gananciaFiatPorUsdt,2)}/USDT · Capital ${sym} ${N(capitalFiat,0)}</div>
+        </div>
+        <div class="opp-profit-val ${gainClass}">${N(gananciaPct,2)}%</div>
+      </div>`;
+
+    // Capital
+    html += `<div class="opp-footer"><span>💰 Capital Mayor de ${N(capital,0)} USDT</span><span>🕐 ${ts}</span></div>`;
+
+    html += `</div>`; // /opp-card
+
+    G('bot-alerts').innerHTML = html;
+    ST.bot.cycles++;
+    T('sc-cycles', ST.bot.cycles + ' ciclo' + (ST.bot.cycles !== 1 ? 's' : ''));
     dot('d-bot','ok');
-    T('sc-bot-txt', fiat + ' · ' + bank + ' · ✓ OK');
+    T('sc-bot-txt', fiat + ' · ' + bank + ' · ✓');
 
   } catch (e) {
-    showAlert('err', null, fiat);
+    G('bot-alerts').innerHTML = `<div class="no-opp">❌ Error: ${e.message}</div>`;
     dot('d-bot','err');
-    T('sc-bot-txt', 'Error: ' + e.message);
+    T('sc-bot-txt','Error');
   }
 }
 
-function showAlert(status, opp, fiat) {
-  const el = G('bot-alerts');
-  if (status === 'err') {
-    el.innerHTML = `
-      <div class="no-opp">
-        ❌ Sin datos de mercado disponibles.<br>
-        <small style="color:var(--dim2)">Verifica conexión o intenta más tarde.</small>
-      </div>`;
-    return;
-  }
-
-  const { useRojo, sym, bank, traderName, isMerchant,
-          sellRate, netSellRate, rebuyRate, gainPct,
-          gainPerUsdt, capital, capitalFiat,
-          rebuysNeeded, rebuyLot } = opp;
-
-  const cardClass  = useRojo ? 'red-card' : 'green';
-  const badgeClass = useRojo ? 'red-card' : 'green';
-  const label      = useRojo ? '🔴 VENTA DIRECTA (Rojo)' : '🟢 ANUNCIO PROPIO (Verde)';
-  const gainClass  = gainPct > 0 ? 'green' : 'red';
-  const ts         = new Date().toLocaleTimeString('es-PE');
-
-  el.innerHTML = `
-    <div class="opp-card ${cardClass}">
-      <div class="opp-header">
-        <span class="opp-badge ${badgeClass}">${label}</span>
-        <span class="opp-bank">🏦 ${bank}</span>
-      </div>
-      <div class="opp-grid">
-        <div class="opp-item">
-          <div class="opp-item-lbl">👤 Trader</div>
-          <div class="opp-item-val ${useRojo ? 'cyan' : 'dim'}">${traderName}${isMerchant === true ? ' ✅' : isMerchant === false ? ' ⚠️' : ''}</div>
-        </div>
-        <div class="opp-item">
-          <div class="opp-item-lbl">📤 Tasa venta</div>
-          <div class="opp-item-val ${useRojo ? 'red' : 'green'}">${sym} ${N(sellRate, 2)}</div>
-        </div>
-        <div class="opp-item">
-          <div class="opp-item-lbl">💵 Recompra USDT</div>
-          <div class="opp-item-val cyan">${sym} ${N(rebuyRate, 2)}</div>
-        </div>
-        <div class="opp-item">
-          <div class="opp-item-lbl">🔄 Órdenes recompra</div>
-          <div class="opp-item-val gold">${rebuysNeeded} × ${sym} ${N(rebuyLot,0)}</div>
-        </div>
-      </div>
-      <div class="opp-profit">
-        <div>
-          <div class="opp-profit-lbl">📊 Ganancia estimada</div>
-          <div style="font-size:9px;color:var(--dim);margin-top:2px">
-            ${N(gainPerUsdt,2)} ${sym}/USDT · capital ${N(capitalFiat,0)} ${sym}
-          </div>
-        </div>
-        <div class="opp-profit-val ${gainClass}">${N(gainPct,2)}%</div>
-      </div>
-      <div style="font-size:9px;color:var(--dim);margin-bottom:6px">
-        💰 Capital Mayor de ${N(capital,0)} USDT
-      </div>
-      <div class="opp-ts">🕐 ${ts}</div>
-    </div>`;
-}
-
-/* ── BOT LOOP ── */
+/* ── BOT CONTROL ── */
 function startBot() {
-  if (ST.botOn) return;
-  ST.botOn = true;
-  const interval = (parseFloat(G('bot-interval').value) || 10) * 1000;
+  if (ST.bot.on) return;
+  ST.bot.on       = true;
+  ST.bot.interval = (parseFloat(G('bot-interval').value) || 10) * 1000;
   runBotCycle();
-  ST.botTimer = setInterval(() => runBotCycle(), interval);
-  startCountdown(interval);
+  ST.bot.timer = setInterval(runBotCycle, ST.bot.interval);
+  runCountdown(ST.bot.interval);
 }
 
-function startCountdown(ms) {
+function restartBot() {
+  clearInterval(ST.bot.timer);
+  clearInterval(ST.bot.cdTimer);
+  ST.bot.on = false;
+  setTimeout(startBot, 100);
+}
+
+function onCfgChange() {
+  // Si el bot está activo, reiniciarlo con la nueva configuración
+  if (ST.bot.on) restartBot();
+}
+
+function runCountdown(ms) {
+  clearInterval(ST.bot.cdTimer);
   let start = Date.now();
-  clearInterval(ST.cdTimer);
-  ST.cdTimer = setInterval(() => {
-    const elapsed  = Date.now() - start;
-    const interval = ms;
-    const remaining = Math.max(0, interval - elapsed);
-    const pct = (remaining / interval) * 100;
-    G('countdown-fill').style.width = pct + '%';
-    T('countdown-txt', Math.ceil(remaining/1000) + 's');
-    if (elapsed >= interval) { start = Date.now(); }
+  ST.bot.cdTimer = setInterval(() => {
+    const elapsed   = Date.now() - start;
+    const remaining = Math.max(0, ms - (elapsed % ms));
+    const pct       = (remaining / ms) * 100;
+    G('cd-fill').style.width = pct + '%';
+    T('cd-txt', Math.ceil(remaining / 1000) + 's');
   }, 100);
 }
 
-function saveCfg() {
-  // Si el bot ya está corriendo, reiniciarlo con nueva config
-  if (ST.botOn) {
-    clearInterval(ST.botTimer);
-    clearInterval(ST.cdTimer);
-    ST.botOn = false;
-    setTimeout(startBot, 200);
-  }
-}
-
-/* ════════════════════════════════════════
-   CALC ESTABLES
-════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   CALCULADORA ESTABLES
+═══════════════════════════════════════════ */
 function calcS() {
   const buy  = +gv('s-buy')  || 0;
   const sell = +gv('s-sell') || 0;
   const com  = +gv('s-com')  || 0;
-  const fiat = G('s-fiat').value;
-  const sym  = fiat === 'VES' ? 'Bs.' : 'S/';
-  if (!buy || !sell) { ['s-r0','s-r00','s-r1','s-r3','s-r4'].forEach(id=>rv(id,'—','dim')); return; }
+  const sym  = G('s-fiat').value === 'VES' ? 'Bs.' : 'S/';
+  if (!buy||!sell) { ['s-r0','s-r00','s-r1','s-r3','s-r4'].forEach(id=>rv(id,'—','dim')); return; }
   const f=com/100, bEf=buy*(1+f), sEf=sell*(1-f);
   const sp=sEf-bEf, mg=sEf/bEf-1, p100=100*mg;
   rv('s-r0',  N(bEf,4)+' '+sym, 'dim');
   rv('s-r00', N(sEf,4)+' '+sym, 'dim');
   rv('s-r1',  (sp>=0?'+':'')+N(sp,4)+' '+sym, sp>0?'cyan':'red');
   rv('s-r3',  (p100>0?'+':'')+N(p100,4)+' USDT', p100>0?'green':'red');
-  rv('s-r4',  N(mg*100,2)+'%', mg>0?'big':'big red');
-  if(mg>0)G('s-r4').className='rv big';else G('s-r4').className='rv big red';
+  rv('s-r4',  N(mg*100,2)+'%', '');
+  G('s-r4').className = 'rv big ' + (mg > 0 ? '' : 'red');
+  if (mg > 0) G('s-r4').style.color = 'var(--cyan)';
+  else G('s-r4').style.color = 'var(--red)';
 }
 
-/* ════════════════════════════════════════
-   CALC BTC LOOP
-════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   CALCULADORA BTC LOOP
+═══════════════════════════════════════════ */
 function calcV() {
-  const buyBTC  = +gv('v-buy')  || 0;
-  const sellF   = +gv('v-sell') || 0;
-  const comP2P  = +gv('v-com')  || 0;
-  const spot    = ST.btc;
-  const fiat    = G('v-fiat').value;
-  const sym     = fiat === 'VES' ? 'Bs.' : 'S/';
+  const buyBTC = +gv('v-buy')  || 0;
+  const sellF  = +gv('v-sell') || 0;
+  const comP2P = +gv('v-com')  || 0;
+  const spot   = ST.btc;
+  const sym    = G('v-fiat').value === 'VES' ? 'Bs.' : 'S/';
   const ids = ['v-r0','v-r1','v-r2','v-r3','v-r4','v-r5','v-r6','v-r7','v-r8','v-r9'];
   if (!buyBTC||!sellF||!spot) { ids.forEach(id=>rv(id,'—','dim')); return; }
   const f=comP2P/100;
   const cR=buyBTC*(1+f), mF=spot*sellF, tcEf=cR/spot;
   const pMkt=buyBTC/mF*100, disc=100-pMkt;
   const uOut=spot*(1-0.001), pBack=uOut*sellF*(1-f);
-  const gF=pBack-cR, gU=gF/sellF, invU=cR/sellF, mg=invU>0?gU/invU*100:0;
-  rv('v-r0', sym+' '+N(mF,2)+'/BTC','dim');
-  rv('v-r1', sym+' '+N(cR,2),'dim');
-  rv('v-r2', N(tcEf,4)+' '+sym+'/USD','cyan');
+  const gF=pBack-cR, gU=gF/sellF, invU=cR/sellF;
+  const mg=invU>0?gU/invU*100:0;
+  rv('v-r0', sym+' '+N(mF,2)+'/BTC',                   'dim');
+  rv('v-r1', sym+' '+N(cR,2),                           'dim');
+  rv('v-r2', N(tcEf,4)+' '+sym+'/USD',                  'cyan');
   rv('v-r3', N(pMkt,2)+'% mkt · ahorras '+N(disc,2)+'%', disc>0?'green':'red');
-  rv('v-r4', N(uOut,4)+' USDT','cyan');
-  rv('v-r5', sym+' '+N(pBack,2),'dim');
-  rv('v-r6', (gF>=0?'+':'')+sym+' '+N(gF,2), gF>=0?'green':'red');
-  rv('v-r7', (gU>=0?'+':'')+N(gU,4)+' USDT', gU>=0?'green':'red');
-  rv('v-r8', N(invU,4)+' USDT','dim');
-  rv('v-r9', N(mg,2)+'%', mg>=0?'big':'big red');
-  if(mg>=0)G('v-r9').className='rv big';else G('v-r9').className='rv big red';
+  rv('v-r4', N(uOut,4)+' USDT',                         'cyan');
+  rv('v-r5', sym+' '+N(pBack,2),                        'dim');
+  rv('v-r6', (gF>=0?'+':'')+sym+' '+N(gF,2),            gF>=0?'green':'red');
+  rv('v-r7', (gU>=0?'+':'')+N(gU,4)+' USDT',            gU>=0?'green':'red');
+  rv('v-r8', N(invU,4)+' USDT',                         'dim');
+  rv('v-r9', N(mg,2)+'%',                               '');
+  G('v-r9').className = 'rv big';
+  G('v-r9').style.color = mg >= 0 ? 'var(--cyan)' : 'var(--red)';
 }
 
-/* ════════════════════════════════════════
-   GRÁFICO CANVAS
-════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   GRÁFICO CANVAS — usa historial persistente
+═══════════════════════════════════════════ */
 function drawChart() {
   const wrap=G('chartWrap'), canvas=G('cv'), hint=G('ch-hint');
   const DPR=window.devicePixelRatio||1, W=wrap.clientWidth, H=wrap.clientHeight;
@@ -871,51 +907,76 @@ function drawChart() {
   canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(DPR,DPR); ctx.fillStyle='#080f1c'; ctx.fillRect(0,0,W,H);
-  const now=tNow(), cutoff=ST.tfH>0?now-ST.tfH*3600:0;
-  const raw=(ST.hist[ST.pair]||[]).filter(p=>p.t>=cutoff);
-  const seen=new Set();
-  const pts=raw.filter(p=>{if(seen.has(p.t))return false;seen.add(p.t);return true;}).sort((a,b)=>a.t-b.t);
+
+  const now    = tNow();
+  const cutoff = ST.tfH > 0 ? now - ST.tfH * 3600 : 0;
+  const raw    = histGet(ST.pair).filter(p => p.t >= cutoff);
+
+  // Dedup + sort
+  const seen = new Set();
+  const pts  = raw.filter(p => { if(seen.has(p.t)) return false; seen.add(p.t); return true; })
+                  .sort((a,b) => a.t - b.t);
+
   T('ci-label', ST.pair+'/USDT · '+(ST.tfH===0?'Todo':ST.tfH<24?ST.tfH+'H':'1D'));
   T('ci-pts', pts.length+' punto(s)');
-  if(pts.length<2){hint.style.display='flex';return;}
-  hint.style.display='none';
-  const zs=ST.zones[ST.pair]||[], vals=pts.map(p=>p.v);
-  let minV=Math.min(...vals,...(zs.length?zs:[vals[0]]));
-  let maxV=Math.max(...vals,...(zs.length?zs:[vals[0]]));
-  const pad=(maxV-minV)*0.15||0.005; minV-=pad; maxV+=pad;
-  const range=maxV-minV||0.001, span=(pts[pts.length-1].t-pts[0].t)||1;
-  const P={l:56,r:12,t:16,b:26};
-  const cW=W-P.l-P.r, cH=H-P.t-P.b;
-  const tx=t=>P.l+(t-pts[0].t)/span*cW, ty=v=>P.t+(1-(v-minV)/range)*cH;
+
+  if (pts.length < 2) { hint.style.display='flex'; return; }
+  hint.style.display = 'none';
+
+  const zs   = ST.zones[ST.pair] || [];
+  const vals = pts.map(p=>p.v);
+  let   minV = Math.min(...vals, ...(zs.length?zs:[vals[0]]));
+  let   maxV = Math.max(...vals, ...(zs.length?zs:[vals[0]]));
+  const pad  = (maxV-minV)*0.15||0.005;
+  minV -= pad; maxV += pad;
+  const range = maxV-minV||0.001;
+  const span  = (pts[pts.length-1].t - pts[0].t)||1;
+
+  const P  = {l:56,r:12,t:16,b:26};
+  const cW = W-P.l-P.r, cH = H-P.t-P.b;
+  const tx  = t => P.l+(t-pts[0].t)/span*cW;
+  const ty  = v => P.t+(1-(v-minV)/range)*cH;
+
+  // Grid horizontal
   ctx.strokeStyle='#182438'; ctx.lineWidth=1;
-  for(let i=0;i<=5;i++){
+  for (let i=0;i<=5;i++) {
     const y=P.t+i/5*cH, val=maxV-i/5*range;
     ctx.beginPath(); ctx.moveTo(P.l,y); ctx.lineTo(W-P.r,y); ctx.stroke();
     ctx.fillStyle='#506a8a'; ctx.font='10px monospace'; ctx.textAlign='right';
     ctx.fillText(N(val,2),P.l-4,y+3.5);
   }
+  // Etiquetas tiempo
   const ticks=Math.min(5,pts.length-1);
   ctx.fillStyle='#506a8a'; ctx.font='9px monospace'; ctx.textAlign='center';
-  for(let i=0;i<=ticks;i++){
+  for (let i=0;i<=ticks;i++) {
     const idx=Math.round(i*(pts.length-1)/ticks);
     const d=new Date(pts[idx].t*1000);
-    ctx.fillText(d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'),tx(pts[idx].t),H-P.b+13);
+    ctx.fillText(d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'),
+      tx(pts[idx].t), H-P.b+13);
   }
+  // Área degradada
   const grad=ctx.createLinearGradient(0,P.t,0,P.t+cH);
-  grad.addColorStop(0,'rgba(0,207,255,.18)'); grad.addColorStop(.7,'rgba(0,207,255,.04)'); grad.addColorStop(1,'rgba(0,207,255,0)');
-  ctx.beginPath(); ctx.moveTo(tx(pts[0].t),ty(pts[0].v));
+  grad.addColorStop(0,'rgba(0,207,255,.18)');
+  grad.addColorStop(.7,'rgba(0,207,255,.04)');
+  grad.addColorStop(1,'rgba(0,207,255,0)');
+  ctx.beginPath();
+  ctx.moveTo(tx(pts[0].t),ty(pts[0].v));
   pts.forEach(p=>ctx.lineTo(tx(p.t),ty(p.v)));
-  ctx.lineTo(tx(pts[pts.length-1].t),P.t+cH); ctx.lineTo(tx(pts[0].t),P.t+cH);
+  ctx.lineTo(tx(pts[pts.length-1].t),P.t+cH);
+  ctx.lineTo(tx(pts[0].t),P.t+cH);
   ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+  // Línea principal
   ctx.beginPath(); ctx.strokeStyle='#00cfff'; ctx.lineWidth=2; ctx.lineJoin='round';
   pts.forEach((p,i)=>i===0?ctx.moveTo(tx(p.t),ty(p.v)):ctx.lineTo(tx(p.t),ty(p.v)));
   ctx.stroke();
+  // Punto final
   const lp=pts[pts.length-1];
   ctx.beginPath(); ctx.arc(tx(lp.t),ty(lp.v),4,0,Math.PI*2);
   ctx.fillStyle='#00cfff'; ctx.fill();
   ctx.strokeStyle='#03060e'; ctx.lineWidth=2; ctx.stroke();
   ctx.fillStyle='#00cfff'; ctx.font='bold 11px monospace'; ctx.textAlign='left';
   ctx.fillText(N(lp.v,3),P.l+4,P.t+13);
+  // Zonas
   ctx.font='9px monospace';
   zs.forEach(z=>{
     if(z<minV||z>maxV)return;
@@ -928,26 +989,19 @@ function drawChart() {
   });
 }
 
-/* ════════════════════════════════════════
-   HISTORIAL & ZONAS
-════════════════════════════════════════ */
-function addHist(pair,t,v){
-  if(!ST.hist[pair])ST.hist[pair]=[];
-  const arr=ST.hist[pair], last=arr[arr.length-1];
-  if(last&&Math.abs(last.t-t)<10&&last.v===v)return;
-  arr.push({t,v}); if(arr.length>10000)arr.splice(0,arr.length-10000);
-  sl('fp2p_h10',ST.hist);
-}
+/* ═══════════════════════════════════════════
+   ZONAS
+═══════════════════════════════════════════ */
 function addZone(){
   const p=parseFloat(G('zone-in').value); if(!p||isNaN(p))return;
   if(!ST.zones[ST.pair])ST.zones[ST.pair]=[];
   if(!ST.zones[ST.pair].includes(p))ST.zones[ST.pair].push(p);
-  sl('fp2p_z10',ST.zones); G('zone-in').value='';
+  sl('fp2p_zones11',ST.zones); G('zone-in').value='';
   renderChips(); drawChart();
 }
 function removeZone(v){
   ST.zones[ST.pair]=(ST.zones[ST.pair]||[]).filter(z=>z!==v);
-  sl('fp2p_z10',ST.zones); renderChips(); drawChart();
+  sl('fp2p_zones11',ST.zones); renderChips(); drawChart();
 }
 function renderChips(){
   const zs=ST.zones[ST.pair]||[], el=G('chips');
@@ -958,15 +1012,15 @@ function renderChips(){
   ).join('');
 }
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════
    NAVEGACIÓN
-════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function goTab(id,el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   G('v-'+id).classList.add('on'); el.classList.add('on');
   if(id==='chart'){renderChips();drawChart();}
-  if(id==='bot'&&!ST.botOn){startBot();}
+  if(id==='bot'&&!ST.bot.on){startBot();}
 }
 function goPanel(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
@@ -984,9 +1038,9 @@ function setTF(h,el){
   el.classList.add('on'); drawChart();
 }
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════
    RELOJ & RESIZE
-════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 setInterval(()=>{T('tk-time',new Date().toLocaleTimeString('es-PE'));},1000);
 let rT;
 window.addEventListener('resize',()=>{
@@ -994,16 +1048,16 @@ window.addEventListener('resize',()=>{
   rT=setTimeout(()=>{if(G('v-chart').classList.contains('on'))drawChart();},150);
 });
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════════
    UTILS
-════════════════════════════════════════ */
+═══════════════════════════════════════════ */
 function G(id)    {return document.getElementById(id);}
 function T(id,t)  {const e=G(id);if(e)e.textContent=t;}
 function gv(id)   {return document.getElementById(id)?.value||'';}
 function tNow()   {return Math.floor(Date.now()/1000);}
 function N(n,d)   {return(+n).toLocaleString('es-PE',{minimumFractionDigits:d,maximumFractionDigits:d});}
-function dot(id,st){const d=G(id);if(d)d.className='dot '+st;}
-function rv(id,txt,cls){const e=G(id);if(!e)return;e.textContent=txt;if(cls!==undefined)e.className='rv '+cls;}
+function dot(id,s){const d=G(id);if(d)d.className='dot '+s;}
+function rv(id,t,c){const e=G(id);if(!e)return;e.textContent=t;if(c)e.className='rv '+c;}
 function ls(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
 function sl(k,v)  {try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 </script>
