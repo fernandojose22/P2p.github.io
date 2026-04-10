@@ -272,6 +272,19 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
         <input type="number" id="s-sell" placeholder="635.00" step="0.01" inputmode="decimal" oninput="calcS()">
       </div>
     </div>
+    <div class="row">
+      <div class="field">
+        <label>Capital a operar</label>
+        <input type="number" id="s-capital" placeholder="1000" step="100" inputmode="decimal" oninput="calcS()">
+      </div>
+      <div class="field" style="max-width:110px">
+        <label>Unidad</label>
+        <select id="s-cap-unit" onchange="calcS()">
+          <option value="USDT">USDT</option>
+          <option value="FIAT">Fiat</option>
+        </select>
+      </div>
+    </div>
     <div class="res">
       <div class="sep">Lo que realmente pagas / cobras</div>
       <div class="rr">
@@ -299,7 +312,29 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
         <span class="rl">&#x2726; Margen neto sobre inversion</span>
         <span class="rv big" id="s-r4">&mdash;</span>
       </div>
+      <div class="sep">Motor de Capital</div>
+      <div class="rr">
+        <span class="rl">USDT operados</span>
+        <span class="rv dim" id="s-r5">&mdash;</span>
+      </div>
+      <div class="rr">
+        <span class="rl">Fiat invertido</span>
+        <span class="rv dim" id="s-r6">&mdash;</span>
+      </div>
+      <div class="rr">
+        <span class="rl">Ganancia total Fiat</span>
+        <span class="rv" id="s-r7">&mdash;</span>
+      </div>
+      <div class="rr">
+        <span class="rl">Ganancia total USDT</span>
+        <span class="rv" id="s-r8">&mdash;</span>
+      </div>
+      <div class="rr">
+        <span class="rl">Saldo final (USDT)</span>
+        <span class="rv big" id="s-r9">&mdash;</span>
+      </div>
     </div>
+    <button class="autofill-btn" id="s-register-btn" onclick="registerCalcCycle('stable',this)" style="width:100%;margin-top:10px;padding:12px;font-size:11px;background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.4);color:var(--cyan)">&#x2795; REGISTRAR CICLO</button>
   </div>
 </div>
 
@@ -342,6 +377,19 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
         <input type="number" id="v-sell" placeholder="635" step="0.01" inputmode="decimal" oninput="calcV()">
       </div>
     </div>
+    <div class="row">
+      <div class="field">
+        <label>Capital a operar</label>
+        <input type="number" id="v-capital" placeholder="1000" step="100" inputmode="decimal" oninput="calcV()">
+      </div>
+      <div class="field" style="max-width:110px">
+        <label>Unidad</label>
+        <select id="v-cap-unit" onchange="calcV()">
+          <option value="USDT">USDT</option>
+          <option value="FIAT">Fiat</option>
+        </select>
+      </div>
+    </div>
     <div class="res">
       <div class="sep">&#x2460; Compra BTC en P2P</div>
       <div class="rr"><span class="rl">Precio BTC de mercado (Spot x TC)</span><span class="rv dim" id="v-r0">&mdash;</span></div>
@@ -357,7 +405,14 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
       <div class="rr"><span class="rl">USDT ganados netos del ciclo</span><span class="rv" id="v-r7">&mdash;</span></div>
       <div class="rr"><span class="rl">Inversion equivalente en USDT</span><span class="rv dim" id="v-r8">&mdash;</span></div>
       <div class="rr"><span class="rl">&#x2726; Margen neto (en USDT)</span><span class="rv big" id="v-r9">&mdash;</span></div>
+      <div class="sep">Motor de Capital</div>
+      <div class="rr"><span class="rl">BTC a operar</span><span class="rv dim" id="v-r10">&mdash;</span></div>
+      <div class="rr"><span class="rl">Fiat invertido</span><span class="rv dim" id="v-r11">&mdash;</span></div>
+      <div class="rr"><span class="rl">Ganancia total Fiat</span><span class="rv" id="v-r12">&mdash;</span></div>
+      <div class="rr"><span class="rl">Ganancia total USDT</span><span class="rv" id="v-r13">&mdash;</span></div>
+      <div class="rr"><span class="rl">Saldo final (USDT)</span><span class="rv big" id="v-r14">&mdash;</span></div>
     </div>
+    <button class="autofill-btn" id="v-register-btn" onclick="registerCalcCycle('btc',this)" style="width:100%;margin-top:10px;padding:12px;font-size:11px;background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.4);color:var(--cyan)">&#x2795; REGISTRAR CICLO</button>
   </div>
 </div>
 ```
@@ -1031,7 +1086,7 @@ async function runBotCycle() {
       <div class="opp-profit-val ${gainClass}">${N(gananciaPct,2)}%</div>
     </div>`;
 
-    // Stage cycle data for Register button
+    // Stage cycle data (still useful for stats but no button in bot)
     ST.stagedCycle = {
       ts: Date.now(), fiat, bank, tableType, tipo,
       precioVenta: precioVentaRef, precioVentaEfectivo,
@@ -1043,9 +1098,7 @@ async function runBotCycle() {
     html += `<div class="opp-footer">
       <span>Capital: ${sym} ${N(capitalFiat,0)}</span>
       <span style="color:var(--green);font-weight:600">&#x25CF; LIVE ${ts}</span>
-    </div>
-    <button class="autofill-btn" onclick="registerStagedCycle(this)" style="width:100%;margin-top:8px;padding:10px;font-size:11px;background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.4);color:var(--cyan)">&#x2795; REGISTRAR CICLO</button>
-    </div>`;
+    </div></div>`;
 
     G('bot-alerts').innerHTML = html;
     ST.bot.cycles++;
@@ -1153,10 +1206,13 @@ function calcS() {
   const tc_c = +gv('s-buy') || 0;
   const tc_v = +gv('s-sell') || 0;
   const com  = +gv('s-com') || 0;
+  const cap  = +gv('s-capital') || 0;
+  const unit = G('s-cap-unit')?.value || 'USDT';
   const sym  = G('s-fiat').value === 'VES' ? 'Bs.' : 'S/';
+  const fiat = G('s-fiat').value;
 
   if (!tc_c || !tc_v) {
-    ['s-r0','s-r00','s-r1','s-r2','s-r3','s-r4'].forEach(id => rv(id, '\u2014', 'dim'));
+    ['s-r0','s-r00','s-r1','s-r2','s-r3','s-r4','s-r5','s-r6','s-r7','s-r8','s-r9'].forEach(id => rv(id, '\u2014', 'dim'));
     return;
   }
 
@@ -1178,6 +1234,40 @@ function calcS() {
   e.textContent = N(margen * 100, 3) + '%';
   e.className   = 'rv big';
   e.style.color = margen > 0 ? 'var(--cyan)' : 'var(--red)';
+
+  // Motor de Capital
+  if (cap > 0) {
+    const usdtOp  = unit === 'USDT' ? cap : cap / costo_por_usdt;
+    const fiatInv = usdtOp * costo_por_usdt;
+    const gainFiat = usdtOp * spread_neto;
+    const gainUSDT = gainFiat / tc_v;
+    const saldoUSDT = usdtOp + gainUSDT;
+
+    rv('s-r5', N(usdtOp, 4) + ' USDT', 'cyan');
+    rv('s-r6', sym + ' ' + N(fiatInv, 2), 'dim');
+    rv('s-r7', (gainFiat>=0?'+':'') + sym + ' ' + N(gainFiat, 2), gainFiat>=0?'green':'red');
+    rv('s-r8', (gainUSDT>=0?'+':'') + N(gainUSDT, 4) + ' USDT', gainUSDT>=0?'green':'red');
+    const e9 = G('s-r9');
+    e9.textContent = N(saldoUSDT, 4) + ' USDT';
+    e9.className   = 'rv big';
+    e9.style.color = gainUSDT >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // Stage for register
+    ST.stagedCalcCycle = {
+      source: 'stable', ts: Date.now(), fiat,
+      bank: 'Calculadora', tableType: 'manual',
+      tipo: 'verde',
+      precioVenta: tc_v, precioVentaEfectivo: ingreso_por_usdt,
+      precioRebuy: tc_c, costoRebuy: costo_por_usdt,
+      gananciaPorUsdt: spread_neto,
+      gananciaTotalU: gainUSDT,
+      gananciaPct: margen * 100,
+      usdtAVender: usdtOp, capitalFiat: fiatInv, fee: f,
+    };
+  } else {
+    ['s-r5','s-r6','s-r7','s-r8','s-r9'].forEach(id => rv(id, '\u2014', 'dim'));
+    ST.stagedCalcCycle = null;
+  }
 }
 
 /* ════════════════════════════════════════════════
@@ -1187,9 +1277,12 @@ function calcV() {
   const pBTC = +gv('v-buy') || 0;
   const tcV  = +gv('v-sell') || 0;
   const com  = +gv('v-com') || 0;
+  const cap  = +gv('v-capital') || 0;
+  const unit = G('v-cap-unit')?.value || 'USDT';
   const spot = ST.btc;
   const sym  = G('v-fiat').value === 'VES' ? 'Bs.' : 'S/';
-  const ids  = ['v-r0','v-r1','v-r2','v-r3','v-r4','v-r5','v-r6','v-r7','v-r8','v-r9'];
+  const fiat = G('v-fiat').value;
+  const ids  = ['v-r0','v-r1','v-r2','v-r3','v-r4','v-r5','v-r6','v-r7','v-r8','v-r9','v-r10','v-r11','v-r12','v-r13','v-r14'];
 
   if (!pBTC || !tcV || !spot) { ids.forEach(id => rv(id, '\u2014', 'dim')); return; }
 
@@ -1219,6 +1312,41 @@ function calcV() {
   e9.textContent = N(margin, 3) + '%';
   e9.className   = 'rv big';
   e9.style.color = margin >= 0 ? 'var(--cyan)' : 'var(--red)';
+
+  // Motor de Capital (BTC Loop)
+  if (cap > 0) {
+    // Scale factor: how many BTC units this capital represents
+    const btcUnits   = unit === 'USDT' ? (cap / invUSDT) : (cap / costReal);
+    const btcAmount  = btcUnits * 1; // 1 BTC per unit
+    const fiatInvTot = btcUnits * costReal;
+    const gainFiatTot = btcUnits * gainFiat;
+    const gainUSDTTot = btcUnits * gainUSDT;
+    const saldoUSDT   = btcUnits * invUSDT + gainUSDTTot;
+
+    rv('v-r10', N(btcAmount, 6) + ' BTC', 'cyan');
+    rv('v-r11', sym + ' ' + N(fiatInvTot, 2), 'dim');
+    rv('v-r12', (gainFiatTot>=0?'+':'') + sym + ' ' + N(gainFiatTot, 2), gainFiatTot>=0?'green':'red');
+    rv('v-r13', (gainUSDTTot>=0?'+':'') + N(gainUSDTTot, 4) + ' USDT', gainUSDTTot>=0?'green':'red');
+    const e14 = G('v-r14');
+    e14.textContent = N(saldoUSDT, 4) + ' USDT';
+    e14.className = 'rv big';
+    e14.style.color = gainUSDTTot >= 0 ? 'var(--green)' : 'var(--red)';
+
+    ST.stagedBtcCycle = {
+      source: 'btc', ts: Date.now(), fiat,
+      bank: 'BTC Loop', tableType: 'manual',
+      tipo: 'verde',
+      precioVenta: tcV, precioVentaEfectivo: tcV * (1 - f),
+      precioRebuy: pBTC / spot, costoRebuy: costReal / spot,
+      gananciaPorUsdt: gainUSDT,
+      gananciaTotalU: gainUSDTTot,
+      gananciaPct: margin,
+      usdtAVender: btcUnits * invUSDT, capitalFiat: fiatInvTot, fee: f,
+    };
+  } else {
+    ['v-r10','v-r11','v-r12','v-r13','v-r14'].forEach(id => rv(id, '\u2014', 'dim'));
+    ST.stagedBtcCycle = null;
+  }
 }
 
 /* ════════════════════════════════════════════════
@@ -1446,6 +1574,31 @@ function saveGoals() {
 function loadGoals() {
   G('goal-daily').value = ST.goals.daily;
   G('goal-monthly').value = ST.goals.monthly;
+}
+
+function registerCalcCycle(source, btn) {
+  const staged = source === 'stable' ? ST.stagedCalcCycle : ST.stagedBtcCycle;
+  if (!staged) {
+    alert('Ingresa el capital primero');
+    return;
+  }
+  const cycle = { ...staged, ts: Date.now() };
+  ST.cycles.unshift(cycle);
+  if (ST.cycles.length > 1000) ST.cycles.length = 1000;
+  storageSet('fp2p_cycles_v1', ST.cycles);
+  // Visual feedback
+  btn.innerHTML = '&#x2705; CICLO REGISTRADO';
+  btn.style.background = 'rgba(0,230,122,.15)';
+  btn.style.color = 'var(--green)';
+  btn.style.borderColor = 'rgba(0,230,122,.4)';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '&#x2795; REGISTRAR OTRO CICLO';
+    btn.style.background = 'rgba(0,207,255,.1)';
+    btn.style.color = 'var(--cyan)';
+    btn.style.borderColor = 'rgba(0,207,255,.4)';
+    btn.disabled = false;
+  }, 2000);
 }
 
 function registerStagedCycle(btn) {
