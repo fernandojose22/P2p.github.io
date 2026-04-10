@@ -599,9 +599,7 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
         <button class="pill pair"    onclick="setPair('VES',this)">VES/USDT</button>
       </div>
       <div class="pills" id="tf-pills">
-        <button class="pill" onclick="setTF(1,this)">1m</button>
-        <button class="pill on" onclick="setTF(5,this)">5m</button>
-        <button class="pill"    onclick="setTF(15,this)">15m</button>
+        <button class="pill on" onclick="setTF(15,this)">15m</button>
         <button class="pill"    onclick="setTF(60,this)">1H</button>
         <button class="pill"    onclick="setTF(240,this)">4H</button>
       </div>
@@ -643,7 +641,7 @@ const ST = {
   btc      : null,
   p2p      : { PEN: null, VES: null },
   pair     : 'PEN',
-  tfMin    : 5,  // candle interval in minutes
+  tfMin    : 15,  // candle interval in minutes
   zones    : {},
   history  : { PEN: [], VES: [] },
   signals  : [],
@@ -671,11 +669,21 @@ function storageSet(k, v) {
   try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
 }
 
-// Try to restore zones and history from localStorage
+// Try to restore zones from localStorage
 try { ST.zones = storageGet('fp2p_z14', {}); } catch {}
+
+// Wipe old chart history versions ONCE (clean slate request)
+// New data persists in v15 going forward
 try {
-  ST.history.PEN = storageGet('fp2p_h14_PEN', []);
-  ST.history.VES = storageGet('fp2p_h14_VES', []);
+  localStorage.removeItem('fp2p_h13_PEN');
+  localStorage.removeItem('fp2p_h13_VES');
+  localStorage.removeItem('fp2p_h14_PEN');
+  localStorage.removeItem('fp2p_h14_VES');
+} catch {}
+
+try {
+  ST.history.PEN = storageGet('fp2p_h15_PEN', []);
+  ST.history.VES = storageGet('fp2p_h15_VES', []);
 } catch {}
 
 /* ════════════════════════════════════════════════
@@ -689,7 +697,7 @@ function hAdd(pair, t, v) {
   if (last && Math.abs(last.t - t) < 10 && last.v === v) return;
   a.push({ t, v });
   if (a.length > 15000) a.splice(0, a.length - 15000);
-  storageSet('fp2p_h14_' + pair, a);
+  storageSet('fp2p_h15_' + pair, a);
 }
 
 /* ════════════════════════════════════════════════
@@ -1367,6 +1375,7 @@ function calcV() {
 ════════════════════════════════════════════════ */
 
 // Aggregate raw points into OHLC candles by interval (in minutes)
+// Fills gaps with flat candles using last close to keep timeline continuous
 function buildCandles(pair, intervalMin) {
   const raw = ST.history[pair] || [];
   if (raw.length === 0) return [];
@@ -1384,7 +1393,27 @@ function buildCandles(pair, intervalMin) {
       k.n++;
     }
   }
-  return Array.from(map.values()).sort((a,b) => a.t - b.t);
+  // Fill gaps: create flat candles for missing intervals
+  const real = Array.from(map.values()).sort((a,b) => a.t - b.t);
+  if (real.length < 2) return real;
+  const filled = [];
+  for (let i = 0; i < real.length; i++) {
+    filled.push(real[i]);
+    if (i < real.length - 1) {
+      const gap = (real[i+1].t - real[i].t) / ms;
+      if (gap > 1 && gap < 200) {
+        const closeV = real[i].c;
+        for (let j = 1; j < gap; j++) {
+          filled.push({
+            t: real[i].t + j * ms,
+            o: closeV, h: closeV, l: closeV, c: closeV, n: 0,
+            empty: true,
+          });
+        }
+      }
+    }
+  }
+  return filled;
 }
 
 // Auto-decide decimals based on price magnitude
@@ -1419,7 +1448,7 @@ function drawChart() {
   const candles = buildCandles(ST.pair, ST.tfMin);
   ST.chart.candles = candles;
 
-  T('ci-label', ST.pair + '/USDT · ' + ST.tfMin + 'm · ' + candles.length + ' velas');
+  T('ci-label', ST.pair + '/USDT · ' + (ST.tfMin >= 60 ? (ST.tfMin/60) + 'H' : ST.tfMin + 'm') + ' · ' + candles.length + ' velas');
   T('ci-pts', (ST.history[ST.pair]?.length || 0) + ' pts crudos');
 
   if (candles.length < 1) { hint.style.display='flex'; return; }
@@ -1445,13 +1474,13 @@ function drawChart() {
   minV -= padv; maxV += padv;
   const range = maxV - minV || 0.001;
 
-  const P = { l: 56, r: 12, t: 12, b: 24 };
+  const P = { l: 56, r: 62, t: 12, b: 24 };
   const cW = W - P.l - P.r;
   const cH = H - P.t - P.b;
   Object.assign(ST.chart, { P, W, H, cW, cH, minV, maxV, range, DPR });
 
   const candleW = cW / visible.length;
-  const bodyW   = Math.max(1, candleW * 0.7);
+  const bodyW   = Math.max(2, candleW * 0.85);
 
   const xAt = i => P.l + i * candleW + candleW / 2;
   const yAt = v => P.t + (1 - (v - minV) / range) * cH;
@@ -1466,14 +1495,23 @@ function drawChart() {
     ctx.fillText(priceFmt(val, range), P.l - 4, y + 3);
   }
 
-  // X labels (time)
+  // X labels (time / day)
   ctx.textAlign = 'center';
   const ticks = Math.min(5, visible.length);
+  // Detect if visible range crosses days
+  const firstDay = new Date(visible[0].t * 1000).toDateString();
+  const lastDay = new Date(visible[visible.length-1].t * 1000).toDateString();
+  const crossDays = firstDay !== lastDay;
   for (let i = 0; i < ticks; i++) {
     const idx = Math.floor(i * (visible.length - 1) / Math.max(1, ticks - 1));
     const k = visible[idx];
     const d = new Date(k.t * 1000);
-    const lbl = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    let lbl;
+    if (crossDays) {
+      lbl = d.getDate().toString().padStart(2,'0') + '/' + (d.getMonth()+1).toString().padStart(2,'0') + ' ' + d.getHours().toString().padStart(2,'0') + 'h';
+    } else {
+      lbl = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
     ctx.fillText(lbl, xAt(idx), H - P.b + 12);
   }
 
@@ -1481,6 +1519,16 @@ function drawChart() {
   for (let i = 0; i < visible.length; i++) {
     const k = visible[i];
     const x = xAt(i);
+    if (k.empty) {
+      // Filler: draw thin grey line at close level
+      ctx.strokeStyle = 'rgba(80,106,138,.25)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x - bodyW/2, yAt(k.c));
+      ctx.lineTo(x + bodyW/2, yAt(k.c));
+      ctx.stroke();
+      continue;
+    }
     const isUp = k.c >= k.o;
     const col = isUp ? '#00e07a' : '#ff3b5c';
     // Wick
@@ -1492,19 +1540,35 @@ function drawChart() {
     // Body
     const yo = yAt(k.o), yc = yAt(k.c);
     const top = Math.min(yo, yc);
-    const bh  = Math.max(1, Math.abs(yc - yo));
+    const bh  = Math.max(2, Math.abs(yc - yo));
     ctx.fillStyle = col;
     ctx.fillRect(x - bodyW/2, top, bodyW, bh);
   }
 
-  // Last close label on right
-  const last = visible[visible.length - 1];
-  const ly = yAt(last.c);
-  ctx.fillStyle = last.c >= last.o ? '#00e07a' : '#ff3b5c';
-  ctx.fillRect(W - P.r, ly - 8, 50, 16);
-  ctx.fillStyle = '#03060e'; ctx.font = 'bold 10px IBM Plex Mono,monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText(priceFmt(last.c, range), W - P.r + 4, ly + 3);
+  // Find last NON-empty candle for label and OHLC bar
+  let lastReal = null;
+  for (let i = visible.length - 1; i >= 0; i--) {
+    if (!visible[i].empty) { lastReal = visible[i]; break; }
+  }
+  if (!lastReal) lastReal = visible[visible.length - 1];
+
+  // Last close label in the right padding area
+  const ly = yAt(lastReal.c);
+  const lblTxt = priceFmt(lastReal.c, range);
+  ctx.font = 'bold 10px IBM Plex Mono,monospace';
+  const lblW = ctx.measureText(lblTxt).width + 10;
+  // Dotted line from chart edge to badge
+  ctx.strokeStyle = lastReal.c >= lastReal.o ? '#00e07a' : '#ff3b5c';
+  ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(P.l, ly); ctx.lineTo(W - P.r + 2, ly); ctx.stroke();
+  ctx.setLineDash([]);
+  // Badge background
+  ctx.fillStyle = lastReal.c >= lastReal.o ? '#00e07a' : '#ff3b5c';
+  ctx.fillRect(W - P.r + 4, ly - 8, lblW, 16);
+  // Badge text
+  ctx.fillStyle = '#03060e';
+  ctx.textAlign = 'center';
+  ctx.fillText(lblTxt, W - P.r + 4 + lblW/2, ly + 3);
 
   // Zones (golden)
   ctx.font = '9px IBM Plex Mono,monospace';
@@ -1520,15 +1584,15 @@ function drawChart() {
   }
 
   // OHLC bar update
-  if (last) {
+  if (lastReal) {
     const sym = ST.pair === 'VES' ? 'Bs.' : 'S/';
-    const upcol = last.c >= last.o ? 'var(--green)' : 'var(--red)';
-    const chg = ((last.c - last.o) / last.o * 100);
+    const upcol = lastReal.c >= lastReal.o ? 'var(--green)' : 'var(--red)';
+    const chg = ((lastReal.c - lastReal.o) / lastReal.o * 100);
     G('ohlc-bar').innerHTML =
-      `<span>O <span style="color:var(--text)">${priceFmt(last.o,range)}</span></span>` +
-      `<span>H <span style="color:var(--green)">${priceFmt(last.h,range)}</span></span>` +
-      `<span>L <span style="color:var(--red)">${priceFmt(last.l,range)}</span></span>` +
-      `<span>C <span style="color:${upcol}">${priceFmt(last.c,range)}</span></span>` +
+      `<span>O <span style="color:var(--text)">${priceFmt(lastReal.o,range)}</span></span>` +
+      `<span>H <span style="color:var(--green)">${priceFmt(lastReal.h,range)}</span></span>` +
+      `<span>L <span style="color:var(--red)">${priceFmt(lastReal.l,range)}</span></span>` +
+      `<span>C <span style="color:${upcol}">${priceFmt(lastReal.c,range)}</span></span>` +
       `<span style="color:${upcol}">${chg>=0?'+':''}${chg.toFixed(2)}%</span>`;
   }
 }
