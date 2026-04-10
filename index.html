@@ -191,13 +191,7 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
 .autofill-btn:hover{background:rgba(0,207,255,.12);border-color:rgba(0,207,255,.4)}
 .autofill-btn:disabled{opacity:.3;cursor:not-allowed}
 
-/* ─── PROXY STATUS ─── */
-.proxy-status{font-size:8px;color:var(–dim2);padding:4px 0;display:flex;gap:6px;flex-wrap:wrap}
-.proxy-tag{padding:2px 6px;border-radius:4px;border:1px solid var(–br)}
-.proxy-tag.active{border-color:rgba(0,230,122,.3);color:var(–green)}
-.proxy-tag.fail{border-color:rgba(255,59,92,.2);color:var(–red);text-decoration:line-through}
 </style>
-
 </head>
 <body>
 
@@ -435,6 +429,25 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
     </div>
 
 ```
+<!-- Worker URL Config -->
+<div class="card" style="padding:10px 14px;margin-bottom:8px">
+  <div class="row" style="margin-bottom:0;align-items:flex-end">
+    <div class="field" style="min-width:200px">
+      <label>Worker URL <span id="worker-status" style="font-size:8px;margin-left:4px"></span></label>
+      <input type="url" id="bot-worker" placeholder="https://fp2p-proxy.tu-user.workers.dev"
+        style="font-size:11px;font-family:'IBM Plex Mono',monospace"
+        oninput="saveWorkerUrl()">
+    </div>
+    <div class="field" style="max-width:70px">
+      <button class="autofill-btn" onclick="testWorker()" style="padding:10px 8px;width:100%">Test</button>
+    </div>
+  </div>
+  <div style="font-size:8px;color:var(--dim2);margin-top:4px;line-height:1.5">
+    Pega la URL de tu Cloudflare Worker para datos exactos de Binance P2P en tiempo real.<br>
+    Setup en 5 min &rarr; usa el archivo <strong style="color:var(--dim)">cloudflare-worker.js</strong>
+  </div>
+</div>
+
 <div id="cd-wrap">
   <div id="cd-bar"><div id="cd-fill"></div></div>
   <div id="cd-txt">&mdash;</div>
@@ -461,7 +474,6 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
 <div class="schips">
   <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-txt">Esperando...</span></div>
   <span id="sc-cyc" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
-  <span id="sc-proxy" class="proxy-status"></span>
 </div>
 ```
 
@@ -524,7 +536,8 @@ const ST = {
   signals  : [],                    // bot signal history
   bot      : { on:false, timer:null, cdTimer:null, cycles:0, nextRun:0 },
   chart    : { pts:[], P:{}, W:0, H:0, minV:0, maxV:1, range:1, span:1, DPR:1 },
-  proxyOK  : null,  // which proxy last worked
+  proxyOK    : null,
+  dataSource : 'none', // 'worker' or 'none' or 'error'
 };
 
 /* ════════════════════════════════════════════════
@@ -629,75 +642,103 @@ function autoFillStable() {
 }
 
 /* ════════════════════════════════════════════════
-   BOT P2P — REESTRUCTURADO
+   BOT P2P — DATOS DIRECTOS VIA CLOUDFLARE WORKER
 
    LOGICA:
    tablaRoja  (BUY)  = compradores de USDT → venta directa (0% taker fee)
    tablaVerde (SELL) = vendedores de USDT  → anuncio propio (maker fee)
+   tablaRecompra (SELL con rebuyLot) → precio real de recompra
 
-   Recompra: usar anuncio en posicion 1+ de tablaVerde (evitar toparse consigo mismo).
-   Si solo hay 1 anuncio, usar posicion 0 con warning.
-
-   Historial: guardar cada senal para comparar tendencia.
+   Requiere Worker configurado. Sin Worker = sin datos.
 ════════════════════════════════════════════════ */
 
-const PROXIES = [
-  { name: 'corsproxy', url: u => `https://corsproxy.io/?url=${encodeURIComponent(u)}` },
-  { name: 'allorigins', url: u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}` },
-  { name: 'corsproxy-org', url: u => `https://cors-proxy.org/fetch?url=${encodeURIComponent(u)}` },
-];
+/* ── Worker URL persistence ── */
+function getWorkerUrl() {
+  const el = G('bot-worker');
+  return el ? el.value.trim().replace(/\/+$/, '') : '';
+}
+function saveWorkerUrl() {
+  storageSet('fp2p_worker_url', getWorkerUrl());
+  updateWorkerStatus();
+  // Restart bot if running — new worker URL means fresh data source
+  if (ST.bot.on) restartBot();
+}
+function loadWorkerUrl() {
+  const saved = storageGet('fp2p_worker_url', '');
+  const el = G('bot-worker');
+  if (el && saved) el.value = saved;
+}
+function updateWorkerStatus(status) {
+  const el = G('worker-status');
+  if (!el) return;
+  if (!status) {
+    el.innerHTML = getWorkerUrl()
+      ? '<span style="color:var(--gold)">configurado</span>'
+      : '<span style="color:var(--dim2)">sin configurar</span>';
+  } else {
+    el.innerHTML = status;
+  }
+}
+async function testWorker() {
+  const url = getWorkerUrl();
+  if (!url) { updateWorkerStatus('<span style="color:var(--red)">pega tu URL primero</span>'); return; }
+  updateWorkerStatus('<span style="color:var(--gold)">probando...</span>');
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ asset:'USDT', fiat:'VES', tradeType:'BUY', page:1, rows:1, payTypes:[] }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const d = await r.json();
+    if (d?.code === '000000' && d?.data?.length > 0) {
+      updateWorkerStatus('<span style="color:var(--green)">&#x2705; conectado - datos en tiempo real</span>');
+    } else {
+      updateWorkerStatus('<span style="color:var(--red)">respuesta invalida</span>');
+    }
+  } catch(e) {
+    updateWorkerStatus(`<span style="color:var(--red)">&#x274C; ${e.message}</span>`);
+  }
+}
+setTimeout(() => { loadWorkerUrl(); updateWorkerStatus(); }, 100);
 
+/* ════════════════════════════════════════════════
+   BINANCE P2P — DATOS DIRECTOS VIA WORKER
+
+   Solo funciona con Worker configurado.
+   Sin Worker = sin datos. No hay fallback con datos aproximados.
+════════════════════════════════════════════════ */
 async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
-  const publisherType = tableType === 'merchant' ? 'merchant' : null;
-  const targetUrl = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search';
+  const workerUrl = getWorkerUrl();
 
-  const bodyObj = {
-    asset: 'USDT', fiat, tradeType,
-    page: 1, rows: 10,
-    payTypes: bank ? [bank] : [],
-    publisherType,
-    merchantCheck: tableType === 'merchant',
-    transAmount: capitalFiat > 0 ? String(capitalFiat) : '',
-  };
-  const body = JSON.stringify(bodyObj);
-
-  // Cache buster: unique timestamp per request to prevent proxy/browser caching
-  const cacheBust = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-
-  // Try last-working proxy first, then others
-  const ordered = [...PROXIES];
-  if (ST.proxyOK) {
-    const idx = ordered.findIndex(p => p.name === ST.proxyOK);
-    if (idx > 0) { const [p] = ordered.splice(idx, 1); ordered.unshift(p); }
+  if (!workerUrl) {
+    ST.dataSource = 'none';
+    return null;
   }
 
-  for (const proxy of ordered) {
-    try {
-      // Append cache buster to the proxy URL
-      const baseProxyUrl = proxy.url(targetUrl);
-      const separator = baseProxyUrl.includes('?') ? '&' : '?';
-      const proxyUrl = baseProxyUrl + separator + '_cb=' + cacheBust;
+  try {
+    const publisherType = tableType === 'merchant' ? 'merchant' : null;
+    const body = JSON.stringify({
+      asset: 'USDT', fiat, tradeType,
+      page: 1, rows: 10,
+      payTypes: bank ? [bank] : [],
+      publisherType,
+      merchantCheck: tableType === 'merchant',
+      transAmount: capitalFiat > 0 ? String(capitalFiat) : '',
+    });
 
-      const r = await fetch(proxyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-        },
-        body,
-        cache: 'no-store',
-        signal: AbortSignal.timeout(12000),
-      });
-      if (!r.ok) continue;
-      const raw = await r.text();
-      let d;
-      try { d = JSON.parse(raw); } catch { continue; }
-      if (typeof d?.contents === 'string') {
-        try { d = JSON.parse(d.contents); } catch { continue; }
-      }
-      if (d?.code !== '000000' || !Array.isArray(d?.data) || d.data.length === 0) continue;
+    const r = await fetch(workerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(12000),
+    });
 
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+
+    if (d?.code === '000000' && Array.isArray(d?.data) && d.data.length > 0) {
       let ads = d.data;
       if (tableType === 'user') {
         const filtered = ads.filter(ad => {
@@ -706,12 +747,15 @@ async function binanceP2P(fiat, tradeType, bank, capitalFiat, tableType) {
         });
         if (filtered.length > 0) ads = filtered;
       }
-
-      ST.proxyOK = proxy.name;
+      ST.dataSource = 'worker';
       return ads;
-    } catch {}
+    }
+    return null;
+  } catch(e) {
+    console.warn('Worker error:', e.message);
+    ST.dataSource = 'error';
+    throw e;
   }
-  return null;
 }
 
 function adPrice(ad)    { return parseFloat(ad?.adv?.price ?? ad?.price ?? 0); }
@@ -730,6 +774,17 @@ async function runBotCycle() {
   const rebuyLot    = parseFloat(G('bot-rebuy').value) || 30000;
   const sym         = fiat === 'VES' ? 'Bs.' : 'S/';
   const tableLabel  = tableType === 'merchant' ? 'Verificados' : 'No verificados';
+
+  // Worker obligatorio
+  if (!getWorkerUrl()) {
+    G('bot-alerts').innerHTML = `<div class="no-opp" style="line-height:2">
+      &#x1F6A8; <strong style="color:var(--gold)">Configura tu Worker URL arriba</strong><br>
+      <small style="color:var(--dim)">El bot necesita tu proxy privado para traer datos exactos de Binance P2P.<br>
+      Sin Worker no hay datos. Setup en 5 min &rarr; instrucciones en el archivo cloudflare-worker.js</small>
+    </div>`;
+    dot('d-bot', 'err'); T('sc-txt', 'Sin Worker');
+    return;
+  }
 
   if (capitalFiat <= 0) {
     G('bot-alerts').innerHTML = `<div class="no-opp">&#x26A0; Ingresa el capital en ${sym} para iniciar el bot.</div>`;
@@ -759,13 +814,15 @@ async function runBotCycle() {
        - Se toma posicion 0 (mejor precio = mas barato para ti)
     ─────────────────────────────────────────────────────── */
     const [tablaRoja, tablaVerde, tablaRecompra] = await Promise.all([
-      binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType),
-      binanceP2P(fiat, 'SELL', bank, capitalFiat, tableType),
-      binanceP2P(fiat, 'SELL', bank, rebuyLot,    tableType),  // <-- lote de recompra
+      binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType).catch(() => null),
+      binanceP2P(fiat, 'SELL', bank, capitalFiat, tableType).catch(() => null),
+      binanceP2P(fiat, 'SELL', bank, rebuyLot,    tableType).catch(() => null),
     ]);
 
-    // Show proxy status
-    updateProxyStatus();
+    // Update worker status indicator
+    if (ST.dataSource === 'worker') {
+      updateWorkerStatus('<span style="color:var(--green)">&#x2705; en vivo</span>');
+    }
 
     if (!tablaRoja?.length && !tablaVerde?.length) {
       G('bot-alerts').innerHTML = `<div class="no-opp">&#x274C; Sin datos de mercado para ${bank} · ${tableLabel}.<br>
@@ -773,11 +830,11 @@ async function runBotCycle() {
       dot('d-bot', 'err'); T('sc-txt', 'Sin datos'); return;
     }
 
-    const mejorRojo   = tablaRoja?.[0];
-    const precioRojo  = adPrice(mejorRojo);
+    const mejorRojo   = tablaRoja?.[0] || null;
+    const precioRojo  = mejorRojo ? adPrice(mejorRojo) : 0;
 
-    const mejorVerde  = tablaVerde?.[0];
-    const precioVerde = adPrice(mejorVerde);
+    const mejorVerde  = tablaVerde?.[0] || null;
+    const precioVerde = mejorVerde ? adPrice(mejorVerde) : 0;
 
     /* ── Precio de recompra ────────────────────────────────
        Usamos tablaRecompra (SELL filtrada por rebuyLot).
@@ -838,7 +895,10 @@ async function runBotCycle() {
       : `Verde neto (${sym} ${N(netoVerde,2)}) > Rojo (${sym} ${N(netoRojo,2)}) -> publicar anuncio da mas ganancia`;
 
     let html = `<div class="opp-card ${tipo}">`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">`;
     html += `<div class="opp-badge ${tipo}">${esRojo ? '&#x1F534; VENTA DIRECTA (Rojo)' : '&#x1F7E2; ANUNCIO PROPIO (Verde)'}</div>`;
+    html += `<span style="color:var(--green);font-size:8px;font-weight:600">&#x26A1; BINANCE LIVE</span>`;
+    html += `</div>`;
     html += `<div style="font-size:9px;color:var(--dim);margin-bottom:6px">
       &#x1F3E6; <strong style="color:var(--text)">${bank}</strong> &middot; ${tableLabel}
     </div>`;
@@ -917,14 +977,6 @@ async function runBotCycle() {
       <small style="color:var(--dim2)">Reintentando en ${G('bot-interval').value}s...</small></div>`;
     dot('d-bot', 'err'); T('sc-txt', 'Error');
   }
-}
-
-function updateProxyStatus() {
-  const el = G('sc-proxy');
-  if (!el) return;
-  el.innerHTML = PROXIES.map(p =>
-    `<span class="proxy-tag ${p.name === ST.proxyOK ? 'active' : ''}">${p.name}</span>`
-  ).join('');
 }
 
 function renderSignalHistory() {
