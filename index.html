@@ -411,7 +411,7 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
       </div>
       <div class="row">
         <div class="field">
-          <label>Com. Maker % (tu comision)</label>
+          <label>Mi Fee % (aplica a ambos lados)</label>
           <input type="number" id="bot-fee" value="0.20" step="0.01"
             inputmode="decimal" oninput="onCfgChange()">
         </div>
@@ -770,7 +770,7 @@ async function runBotCycle() {
   const bank        = G('bot-bank').value;
   const tableType   = G('bot-table').value;
   const capitalFiat = parseFloat(G('bot-capital').value) || 0;
-  const feeM        = (parseFloat(G('bot-fee').value) || 0.20) / 100;
+  const fee         = (parseFloat(G('bot-fee').value) || 0.20) / 100;
   const rebuyLot    = parseFloat(G('bot-rebuy').value) || 30000;
   const sym         = fiat === 'VES' ? 'Bs.' : 'S/';
   const tableLabel  = tableType === 'merchant' ? 'Verificados' : 'No verificados';
@@ -858,9 +858,14 @@ async function runBotCycle() {
       dot('d-bot', 'err'); return;
     }
 
-    // DECISION
-    const netoRojo  = precioRojo;
-    const netoVerde = precioVerde * (1 - feeM);
+    // DECISION — modelo de fees Binance P2P:
+    // Rojo (venta directa, taker sell)      = 0% fee al vender (taker sell es gratis)
+    // Verde (anuncio propio, maker sell)    = fee al vender (maker)
+    // Recompra SIEMPRE publicando anuncio   = fee al comprar (maker buy)
+    const netoRojo   = precioRojo;                    // recibes directo sin fee
+    const netoVerde  = precioVerde * (1 - fee);       // recibes tras maker sell fee
+    const costoRebuy = precioRebuy * (1 + fee);       // pagas con maker buy fee
+
     const esRojo    = precioRojo > 0 && netoRojo >= netoVerde;
 
     const precioVentaRef      = esRojo ? precioRojo : precioVerde;
@@ -868,9 +873,9 @@ async function runBotCycle() {
 
     // CYCLE CALCULATION
     const usdtAVender     = precioVentaRef > 0 ? capitalFiat / precioVentaRef : 0;
-    const gananciaPorUsdt = precioRebuy > 0 ? precioVentaEfectivo - precioRebuy : 0;
+    const gananciaPorUsdt = costoRebuy > 0 ? precioVentaEfectivo - costoRebuy : 0;
     const gananciaTotalU  = gananciaPorUsdt * usdtAVender;
-    const gananciaPct     = precioRebuy > 0 ? (gananciaPorUsdt / precioRebuy) * 100 : 0;
+    const gananciaPct     = costoRebuy > 0 ? (gananciaPorUsdt / costoRebuy) * 100 : 0;
     const lotesRecompra   = rebuyLot > 0 ? Math.ceil(capitalFiat / rebuyLot) : 0;
 
     // Save signal to history
@@ -890,26 +895,34 @@ async function runBotCycle() {
     const ts = new Date().toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
     const gainClass = gananciaPct > 0 ? 'green' : 'red';
 
-    const motivo = esRojo
-      ? `Rojo (${sym} ${N(netoRojo,2)}) >= Verde neto (${sym} ${N(netoVerde,2)}) -> cobras igual o mas sin esperar`
-      : `Verde neto (${sym} ${N(netoVerde,2)}) > Rojo (${sym} ${N(netoRojo,2)}) -> publicar anuncio da mas ganancia`;
-
     let html = `<div class="opp-card ${tipo}">`;
     html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">`;
-    html += `<div class="opp-badge ${tipo}">${esRojo ? '&#x1F534; VENTA DIRECTA (Rojo)' : '&#x1F7E2; ANUNCIO PROPIO (Verde)'}</div>`;
+    html += `<div class="opp-badge ${tipo}">${esRojo ? '&#x1F534; VENTA DIRECTA (Tabla Roja)' : '&#x1F7E2; PUBLICAR ANUNCIO (Tabla Verde)'}</div>`;
     html += `<span style="color:var(--green);font-size:8px;font-weight:600">&#x26A1; BINANCE LIVE</span>`;
     html += `</div>`;
-    html += `<div style="font-size:9px;color:var(--dim);margin-bottom:6px">
+    html += `<div style="font-size:9px;color:var(--dim);margin-bottom:4px">
       &#x1F3E6; <strong style="color:var(--text)">${bank}</strong> &middot; ${tableLabel}
     </div>`;
-    html += `<div style="font-size:8px;color:var(--dim2);margin-bottom:10px;line-height:1.6">${motivo}</div>`;
+    html += `<div style="font-size:8px;color:var(--dim2);margin-bottom:10px;line-height:1.6">
+      ${esRojo
+        ? 'Ve a la <strong style="color:var(--red)">tabla roja</strong> y vende directo. Recibes ' + sym + ' ' + N(netoRojo,2) + '/USDT sin comision. Luego recompras publicando anuncio a ' + sym + ' ' + N(costoRebuy,2) + '/USDT (+' + N(fee*100,2) + '% fee).'
+        : 'Publica anuncio en <strong style="color:var(--green)">tabla verde</strong>. Al vender recibes ' + sym + ' ' + N(netoVerde,2) + '/USDT (-' + N(fee*100,2) + '% fee). Luego recompras a ' + sym + ' ' + N(costoRebuy,2) + '/USDT (+' + N(fee*100,2) + '% fee).'
+      }
+    </div>`;
 
     html += `<div class="opp-grid">`;
     if (esRojo && mejorRojo) {
-      html += `<div class="oi"><div class="oi-l">Comprador</div>
+      html += `<div class="oi"><div class="oi-l">Comprador (tabla roja)</div>
         <div class="oi-v cyan">${adNick(mejorRojo)}${adMerchant(mejorRojo) ? ' &#x2705;' : ''}</div></div>`;
-      // Show available amount
       const avail = adAvailable(mejorRojo);
+      if (avail > 0) {
+        html += `<div class="oi"><div class="oi-l">Disponible</div>
+          <div class="oi-v dim">${N(avail,2)} USDT</div></div>`;
+      }
+    } else if (!esRojo && mejorVerde) {
+      html += `<div class="oi"><div class="oi-l">Competidor (tabla verde)</div>
+        <div class="oi-v cyan">${adNick(mejorVerde)}${adMerchant(mejorVerde) ? ' &#x2705;' : ''}</div></div>`;
+      const avail = adAvailable(mejorVerde);
       if (avail > 0) {
         html += `<div class="oi"><div class="oi-l">Disponible</div>
           <div class="oi-v dim">${N(avail,2)} USDT</div></div>`;
@@ -918,18 +931,18 @@ async function runBotCycle() {
     html += `
       <div class="oi"><div class="oi-l">Precio venta ref.</div>
         <div class="oi-v ${esRojo ? 'red' : 'green'}">${sym} ${N(precioVentaRef,2)}</div></div>
-      <div class="oi"><div class="oi-l">${esRojo ? 'Neto recibido' : 'Neto tras com.'}</div>
+      <div class="oi"><div class="oi-l">${esRojo ? 'Neto recibido' : 'Neto tras fee'}</div>
         <div class="oi-v gold">${sym} ${N(precioVentaEfectivo,2)}</div></div>
-      <div class="oi"><div class="oi-l">Precio recompra${rebuyWarning}</div>
+      <div class="oi"><div class="oi-l">Precio recompra base${rebuyWarning}</div>
         <div class="oi-v cyan">${sym} ${N(precioRebuy,2)}</div></div>
+      <div class="oi"><div class="oi-l">Costo real recompra (+fee)</div>
+        <div class="oi-v red">${sym} ${N(costoRebuy,2)}</div></div>
       <div class="oi"><div class="oi-l">Vendedor recompra</div>
         <div class="oi-v dim">${rebuyNick}${rebuyAd && adMerchant(rebuyAd) ? ' &#x2705;' : ''}</div></div>
       <div class="oi"><div class="oi-l">USDT a vender</div>
         <div class="oi-v dim">${N(usdtAVender,2)} USDT</div></div>
       <div class="oi"><div class="oi-l">Lotes recompra</div>
         <div class="oi-v gold">${lotesRecompra} x ${sym} ${N(rebuyLot,0)}</div></div>
-      <div class="oi"><div class="oi-l">Disp. recompra</div>
-        <div class="oi-v dim">${rebuyAd ? N(adAvailable(rebuyAd),2) + ' USDT' : 'N/A'}</div></div>
     `;
 
     if (esRojo && precioVerde > 0) {
