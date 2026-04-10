@@ -802,21 +802,18 @@ async function runBotCycle() {
 
   try {
     /* ── 3 consultas paralelas ──────────────────────────────
-       1. tablaRoja  (BUY)  → compradores de USDT → tu venta directa (taker, 0% fee)
-       2. tablaVerde (SELL) → vendedores de USDT  → referencia para tu anuncio (maker fee)
-       3. tablaRecompra (SELL) → vendedores de USDT filtrados por rebuyLot
-          → el mejor precio al que puedes COMPRAR USDT de vuelta como taker
+       API Binance P2P: tradeType es desde TU perspectiva como usuario que busca
+       - tradeType=SELL → TU quieres vender → te devuelve COMPRADORES (tabla roja visual)
+       - tradeType=BUY  → TU quieres comprar → te devuelve VENDEDORES (tabla verde visual)
 
-       CLAVE: La recompra es una consulta SEPARADA porque:
-       - El transAmount debe ser el lote de recompra, NO el capital total
-       - Binance filtra anuncios por monto, así que un lote chico
-         puede ver anuncios con mejor precio que el capital completo
-       - Se toma posicion 0 (mejor precio = mas barato para ti)
+       1. tablaRoja    (SELL) → compradores de USDT → venta directa (taker 0%)
+       2. tablaVerde   (BUY)  → vendedores de USDT → referencia para anuncio propio
+       3. tablaRecompra (BUY) → vendedores de USDT filtrados por rebuyLot → recompra
     ─────────────────────────────────────────────────────── */
     const [tablaRoja, tablaVerde, tablaRecompra] = await Promise.all([
-      binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType).catch(() => null),
       binanceP2P(fiat, 'SELL', bank, capitalFiat, tableType).catch(() => null),
-      binanceP2P(fiat, 'SELL', bank, rebuyLot,    tableType).catch(() => null),
+      binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType).catch(() => null),
+      binanceP2P(fiat, 'BUY',  bank, rebuyLot,    tableType).catch(() => null),
     ]);
 
     // Update worker status indicator
