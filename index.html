@@ -803,17 +803,24 @@ async function runBotCycle() {
   try {
     /* ── 3 consultas paralelas ──────────────────────────────
        API Binance P2P: tradeType es desde TU perspectiva como usuario que busca
-       - tradeType=SELL → TU quieres vender → te devuelve COMPRADORES (tabla roja visual)
-       - tradeType=BUY  → TU quieres comprar → te devuelve VENDEDORES (tabla verde visual)
+       - tradeType=SELL → TU quieres vender → te devuelve anuncios de COMPRADORES (tabla roja visual)
+       - tradeType=BUY  → TU quieres comprar → te devuelve anuncios de VENDEDORES (tabla verde visual)
 
-       1. tablaRoja    (SELL) → compradores de USDT → venta directa (taker 0%)
-       2. tablaVerde   (BUY)  → vendedores de USDT → referencia para anuncio propio
-       3. tablaRecompra (BUY) → vendedores de USDT filtrados por rebuyLot → recompra
+       FLUJO REAL DEL USUARIO:
+       1. Venta directa (Rojo)  → tomar anuncio en tabla roja (0% fee taker)
+       2. Anuncio propio venta  → publicar en tabla verde (maker fee)
+       3. Recompra (Rojo)       → PUBLICAR anuncio en tabla roja (maker fee)
+          → consulta SELL con rebuyLot para ver a quien competiras
+          → tu precio de referencia es el #1 de esa lista
+
+       tablaRoja    (SELL con capitalFiat) → competidores venta directa
+       tablaVerde   (BUY con capitalFiat)  → competidores anuncio propio
+       tablaRecompra(SELL con rebuyLot)    → competidores de recompra
     ─────────────────────────────────────────────────────── */
     const [tablaRoja, tablaVerde, tablaRecompra] = await Promise.all([
       binanceP2P(fiat, 'SELL', bank, capitalFiat, tableType).catch(() => null),
       binanceP2P(fiat, 'BUY',  bank, capitalFiat, tableType).catch(() => null),
-      binanceP2P(fiat, 'BUY',  bank, rebuyLot,    tableType).catch(() => null),
+      binanceP2P(fiat, 'SELL', bank, rebuyLot,    tableType).catch(() => null),
     ]);
 
     // Update worker status indicator
@@ -934,7 +941,7 @@ async function runBotCycle() {
         <div class="oi-v cyan">${sym} ${N(precioRebuy,2)}</div></div>
       <div class="oi"><div class="oi-l">Costo real recompra (+fee)</div>
         <div class="oi-v red">${sym} ${N(costoRebuy,2)}</div></div>
-      <div class="oi"><div class="oi-l">Vendedor recompra</div>
+      <div class="oi"><div class="oi-l">Competidor recompra</div>
         <div class="oi-v dim">${rebuyNick}${rebuyAd && adMerchant(rebuyAd) ? ' &#x2705;' : ''}</div></div>
       <div class="oi"><div class="oi-l">USDT a vender</div>
         <div class="oi-v dim">${N(usdtAVender,2)} USDT</div></div>
