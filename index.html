@@ -1454,22 +1454,47 @@ function drawChart() {
   if (candles.length < 1) { hint.style.display='flex'; return; }
   hint.style.display='none';
 
-  // Init view if needed
+  // Init view if needed — always show at least 20 slots for breathing room
   const c = ST.chart;
-  if (!c.viewCount || c.viewCount < 5) c.viewCount = Math.min(60, candles.length);
-  c.viewCount = Math.min(c.viewCount, candles.length);
+  const MIN_SLOTS = 20;
+  if (!c.viewCount || c.viewCount < 5) c.viewCount = Math.max(MIN_SLOTS, Math.min(60, candles.length));
+  c.viewCount = Math.max(MIN_SLOTS, Math.min(c.viewCount, Math.max(MIN_SLOTS, candles.length)));
   if (c.viewStart === undefined || c.viewStart < 0) c.viewStart = Math.max(0, candles.length - c.viewCount);
-  c.viewStart = Math.min(c.viewStart, candles.length - c.viewCount);
-  if (c.viewStart < 0) c.viewStart = 0;
+  c.viewStart = Math.max(0, Math.min(c.viewStart, Math.max(0, candles.length - c.viewCount)));
 
   const visible = candles.slice(c.viewStart, c.viewStart + c.viewCount);
+  // Pad visible array with empty slots on the right if we have fewer real candles than slots
+  while (visible.length < c.viewCount && candles.length > 0) {
+    const lastT = (visible[visible.length-1]?.t || candles[candles.length-1].t);
+    const ms = ST.tfMin * 60;
+    visible.push({
+      t: lastT + ms * (visible.length - candles.length + c.viewStart + 1),
+      o: 0, h: 0, l: 0, c: 0, n: 0, placeholder: true,
+    });
+  }
   if (visible.length === 0) { hint.style.display='flex'; return; }
 
-  // Y range from visible candles + zones
+  // Y range from visible REAL candles + zones (skip placeholders)
   const zs = ST.zones[ST.pair] || [];
   let minV = Infinity, maxV = -Infinity;
-  for (const k of visible) { if (k.l < minV) minV = k.l; if (k.h > maxV) maxV = k.h; }
+  for (const k of visible) {
+    if (k.placeholder) continue;
+    if (k.l < minV) minV = k.l;
+    if (k.h > maxV) maxV = k.h;
+  }
   for (const z of zs) { if (z < minV) minV = z; if (z > maxV) maxV = z; }
+  // If still no range (only placeholders), use a sane default around the only known value
+  if (minV === Infinity || maxV === -Infinity) {
+    const fallback = candles[candles.length-1]?.c || 1;
+    minV = fallback * 0.999;
+    maxV = fallback * 1.001;
+  }
+  // Ensure non-zero range so eje Y doesn't collapse
+  if (maxV - minV < 0.0001) {
+    const mid = (maxV + minV) / 2;
+    minV = mid * 0.9995;
+    maxV = mid * 1.0005;
+  }
   const padv = (maxV - minV) * 0.12 || 0.001;
   minV -= padv; maxV += padv;
   const range = maxV - minV || 0.001;
@@ -1518,6 +1543,7 @@ function drawChart() {
   // Draw candles
   for (let i = 0; i < visible.length; i++) {
     const k = visible[i];
+    if (k.placeholder) continue;  // skip empty future slots
     const x = xAt(i);
     if (k.empty) {
       // Filler: draw thin grey line at close level
@@ -1545,12 +1571,12 @@ function drawChart() {
     ctx.fillRect(x - bodyW/2, top, bodyW, bh);
   }
 
-  // Find last NON-empty candle for label and OHLC bar
+  // Find last NON-empty NON-placeholder candle for label and OHLC bar
   let lastReal = null;
   for (let i = visible.length - 1; i >= 0; i--) {
-    if (!visible[i].empty) { lastReal = visible[i]; break; }
+    if (!visible[i].empty && !visible[i].placeholder) { lastReal = visible[i]; break; }
   }
-  if (!lastReal) lastReal = visible[visible.length - 1];
+  if (!lastReal) lastReal = candles[candles.length - 1];
 
   // Last close label in the right padding area
   const ly = yAt(lastReal.c);
