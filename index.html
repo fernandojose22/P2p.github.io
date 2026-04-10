@@ -599,17 +599,19 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
         <button class="pill pair"    onclick="setPair('VES',this)">VES/USDT</button>
       </div>
       <div class="pills" id="tf-pills">
-        <button class="pill on" onclick="setTF(1,this)">1H</button>
-        <button class="pill"    onclick="setTF(4,this)">4H</button>
-        <button class="pill"    onclick="setTF(24,this)">1D</button>
-        <button class="pill"    onclick="setTF(0,this)">Todo</button>
+        <button class="pill" onclick="setTF(1,this)">1m</button>
+        <button class="pill on" onclick="setTF(5,this)">5m</button>
+        <button class="pill"    onclick="setTF(15,this)">15m</button>
+        <button class="pill"    onclick="setTF(60,this)">1H</button>
+        <button class="pill"    onclick="setTF(240,this)">4H</button>
       </div>
     </div>
     <div id="chart-info-bar">
-      <span id="ci-label">PEN/USDT &middot; 1H</span>
+      <span id="ci-label">PEN/USDT &middot; 5m</span>
       <span id="cross-info"></span>
       <span id="ci-pts"></span>
     </div>
+    <div id="ohlc-bar" style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:9px;margin-bottom:6px;color:var(--dim);min-height:14px"></div>
     <div id="chartWrap">
       <canvas id="cv"></canvas>
       <canvas id="cvX"></canvas>
@@ -641,12 +643,19 @@ const ST = {
   btc      : null,
   p2p      : { PEN: null, VES: null },
   pair     : 'PEN',
-  tfH      : 1,
+  tfMin    : 5,  // candle interval in minutes
   zones    : {},
-  history  : { PEN: [], VES: [] },  // chart history in-memory
-  signals  : [],                    // bot signal history
+  history  : { PEN: [], VES: [] },
+  signals  : [],
   bot      : { on:false, timer:null, cdTimer:null, cycles:0, nextRun:0 },
-  chart    : { pts:[], P:{}, W:0, H:0, minV:0, maxV:1, range:1, span:1, DPR:1 },
+  chart    : {
+    candles: [], P:{}, W:0, H:0, DPR:1,
+    minV:0, maxV:1, range:1,
+    viewStart: 0,    // index of first visible candle
+    viewCount: 60,   // how many candles visible
+    isDragging: false, lastX:0,
+    pinchDist: 0,
+  },
   proxyOK    : null,
   dataSource : 'none', // 'worker' or 'none' or 'error'
 };
@@ -1350,8 +1359,43 @@ function calcV() {
 }
 
 /* ════════════════════════════════════════════════
-   GRAFICO CON CROSSHAIR
+   GRAFICO DE VELAS PROFESIONAL
+   - Velas OHLC agregadas por intervalo
+   - Pinch-to-zoom + pan tactil
+   - Multi-timeframe real (1m/5m/15m/1H/4H)
+   - Eje Y con decimales adaptativos
 ════════════════════════════════════════════════ */
+
+// Aggregate raw points into OHLC candles by interval (in minutes)
+function buildCandles(pair, intervalMin) {
+  const raw = ST.history[pair] || [];
+  if (raw.length === 0) return [];
+  const ms = intervalMin * 60;
+  const map = new Map();
+  for (const p of raw) {
+    const bucket = Math.floor(p.t / ms) * ms;
+    if (!map.has(bucket)) {
+      map.set(bucket, { t: bucket, o: p.v, h: p.v, l: p.v, c: p.v, n: 1 });
+    } else {
+      const k = map.get(bucket);
+      k.h = Math.max(k.h, p.v);
+      k.l = Math.min(k.l, p.v);
+      k.c = p.v;
+      k.n++;
+    }
+  }
+  return Array.from(map.values()).sort((a,b) => a.t - b.t);
+}
+
+// Auto-decide decimals based on price magnitude
+function priceFmt(v, range) {
+  if (range < 0.01) return v.toFixed(5);
+  if (range < 0.1)  return v.toFixed(4);
+  if (range < 10)   return v.toFixed(3);
+  if (range < 100)  return v.toFixed(2);
+  return v.toFixed(1);
+}
+
 function drawChart() {
   const wrap   = G('chartWrap');
   const canvas = G('cv');
@@ -1366,151 +1410,168 @@ function drawChart() {
   });
 
   const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
   ctx.scale(DPR, DPR);
   ctx.fillStyle = '#080f1c';
   ctx.fillRect(0, 0, W, H);
 
-  const now    = tNow();
-  const cutoff = ST.tfH > 0 ? now - ST.tfH * 3600 : 0;
-  const raw    = hGet(ST.pair).filter(p => p.t >= cutoff);
-  const seen   = new Set();
-  const pts    = raw.filter(p => { if (seen.has(p.t)) return false; seen.add(p.t); return true; })
-                    .sort((a, b) => a.t - b.t);
+  // Build candles
+  const candles = buildCandles(ST.pair, ST.tfMin);
+  ST.chart.candles = candles;
 
-  T('ci-label', ST.pair + '/USDT · ' + (ST.tfH === 0 ? 'Todo' : ST.tfH < 24 ? ST.tfH + 'H' : '1D'));
-  T('ci-pts', pts.length + ' punto(s)');
+  T('ci-label', ST.pair + '/USDT · ' + ST.tfMin + 'm · ' + candles.length + ' velas');
+  T('ci-pts', (ST.history[ST.pair]?.length || 0) + ' pts crudos');
 
-  if (pts.length < 2) { hint.style.display = 'flex'; ST.chart.pts = []; return; }
-  hint.style.display = 'none';
+  if (candles.length < 1) { hint.style.display='flex'; return; }
+  hint.style.display='none';
 
-  const zs   = ST.zones[ST.pair] || [];
-  const vals = pts.map(p => p.v);
-  let   minV = Math.min(...vals, ...(zs.length ? zs : [vals[0]]));
-  let   maxV = Math.max(...vals, ...(zs.length ? zs : [vals[0]]));
-  const pad  = (maxV - minV) * 0.15 || 0.005;
-  minV -= pad; maxV += pad;
+  // Init view if needed
+  const c = ST.chart;
+  if (!c.viewCount || c.viewCount < 5) c.viewCount = Math.min(60, candles.length);
+  c.viewCount = Math.min(c.viewCount, candles.length);
+  if (c.viewStart === undefined || c.viewStart < 0) c.viewStart = Math.max(0, candles.length - c.viewCount);
+  c.viewStart = Math.min(c.viewStart, candles.length - c.viewCount);
+  if (c.viewStart < 0) c.viewStart = 0;
+
+  const visible = candles.slice(c.viewStart, c.viewStart + c.viewCount);
+  if (visible.length === 0) { hint.style.display='flex'; return; }
+
+  // Y range from visible candles + zones
+  const zs = ST.zones[ST.pair] || [];
+  let minV = Infinity, maxV = -Infinity;
+  for (const k of visible) { if (k.l < minV) minV = k.l; if (k.h > maxV) maxV = k.h; }
+  for (const z of zs) { if (z < minV) minV = z; if (z > maxV) maxV = z; }
+  const padv = (maxV - minV) * 0.12 || 0.001;
+  minV -= padv; maxV += padv;
   const range = maxV - minV || 0.001;
-  const span  = (pts[pts.length - 1].t - pts[0].t) || 1;
-  const P     = { l: 58, r: 14, t: 18, b: 28 };
-  const cW    = W - P.l - P.r, cH = H - P.t - P.b;
 
-  Object.assign(ST.chart, { pts, P, W, H, minV, maxV, range, span, cW, cH, DPR });
+  const P = { l: 56, r: 12, t: 12, b: 24 };
+  const cW = W - P.l - P.r;
+  const cH = H - P.t - P.b;
+  Object.assign(ST.chart, { P, W, H, cW, cH, minV, maxV, range, DPR });
 
-  const tx = t => P.l + (t - pts[0].t) / span * cW;
-  const ty = v => P.t + (1 - (v - minV) / range) * cH;
+  const candleW = cW / visible.length;
+  const bodyW   = Math.max(1, candleW * 0.7);
 
-  // Grid
+  const xAt = i => P.l + i * candleW + candleW / 2;
+  const yAt = v => P.t + (1 - (v - minV) / range) * cH;
+
+  // Grid + Y labels
   ctx.strokeStyle = '#182438'; ctx.lineWidth = 1;
+  ctx.fillStyle = '#506a8a'; ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'right';
   for (let i = 0; i <= 5; i++) {
-    const y = P.t + i / 5 * cH, val = maxV - i / 5 * range;
+    const y = P.t + i / 5 * cH;
+    const val = maxV - i / 5 * range;
     ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(W - P.r, y); ctx.stroke();
-    ctx.fillStyle = '#506a8a'; ctx.font = '10px IBM Plex Mono,monospace';
-    ctx.textAlign = 'right'; ctx.fillText(N(val, 2), P.l - 4, y + 3.5);
+    ctx.fillText(priceFmt(val, range), P.l - 4, y + 3);
   }
-  // Time X
-  const ticks = Math.min(5, pts.length - 1);
-  ctx.fillStyle = '#506a8a'; ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'center';
-  for (let i = 0; i <= ticks; i++) {
-    const idx = Math.round(i * (pts.length - 1) / ticks);
-    const d = new Date(pts[idx].t * 1000);
-    ctx.fillText(d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0'),
-      tx(pts[idx].t), H - P.b + 13);
+
+  // X labels (time)
+  ctx.textAlign = 'center';
+  const ticks = Math.min(5, visible.length);
+  for (let i = 0; i < ticks; i++) {
+    const idx = Math.floor(i * (visible.length - 1) / Math.max(1, ticks - 1));
+    const k = visible[idx];
+    const d = new Date(k.t * 1000);
+    const lbl = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    ctx.fillText(lbl, xAt(idx), H - P.b + 12);
   }
-  // Area
-  const grad = ctx.createLinearGradient(0, P.t, 0, P.t + cH);
-  grad.addColorStop(0, 'rgba(0,207,255,.18)'); grad.addColorStop(.7, 'rgba(0,207,255,.04)');
-  grad.addColorStop(1, 'rgba(0,207,255,0)');
-  ctx.beginPath(); ctx.moveTo(tx(pts[0].t), ty(pts[0].v));
-  pts.forEach(p => ctx.lineTo(tx(p.t), ty(p.v)));
-  ctx.lineTo(tx(pts[pts.length - 1].t), P.t + cH);
-  ctx.lineTo(tx(pts[0].t), P.t + cH);
-  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
-  // Line
-  ctx.beginPath(); ctx.strokeStyle = '#00cfff'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
-  pts.forEach((p, i) => i === 0 ? ctx.moveTo(tx(p.t), ty(p.v)) : ctx.lineTo(tx(p.t), ty(p.v)));
-  ctx.stroke();
-  // Last point
-  const lp = pts[pts.length - 1];
-  ctx.beginPath(); ctx.arc(tx(lp.t), ty(lp.v), 4, 0, Math.PI * 2);
-  ctx.fillStyle = '#00cfff'; ctx.fill();
-  ctx.strokeStyle = '#03060e'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.fillStyle = '#00cfff'; ctx.font = 'bold 11px IBM Plex Mono,monospace';
-  ctx.textAlign = 'left'; ctx.fillText(N(lp.v, 3), P.l + 4, P.t + 13);
-  // Zones
+
+  // Draw candles
+  for (let i = 0; i < visible.length; i++) {
+    const k = visible[i];
+    const x = xAt(i);
+    const isUp = k.c >= k.o;
+    const col = isUp ? '#00e07a' : '#ff3b5c';
+    // Wick
+    ctx.strokeStyle = col; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, yAt(k.h));
+    ctx.lineTo(x, yAt(k.l));
+    ctx.stroke();
+    // Body
+    const yo = yAt(k.o), yc = yAt(k.c);
+    const top = Math.min(yo, yc);
+    const bh  = Math.max(1, Math.abs(yc - yo));
+    ctx.fillStyle = col;
+    ctx.fillRect(x - bodyW/2, top, bodyW, bh);
+  }
+
+  // Last close label on right
+  const last = visible[visible.length - 1];
+  const ly = yAt(last.c);
+  ctx.fillStyle = last.c >= last.o ? '#00e07a' : '#ff3b5c';
+  ctx.fillRect(W - P.r, ly - 8, 50, 16);
+  ctx.fillStyle = '#03060e'; ctx.font = 'bold 10px IBM Plex Mono,monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(priceFmt(last.c, range), W - P.r + 4, ly + 3);
+
+  // Zones (golden)
   ctx.font = '9px IBM Plex Mono,monospace';
-  zs.forEach(z => {
-    if (z < minV || z > maxV) return;
-    const y = ty(z);
-    ctx.setLineDash([7, 4]); ctx.strokeStyle = '#ffb400'; ctx.lineWidth = 1.5;
+  for (const z of zs) {
+    if (z < minV || z > maxV) continue;
+    const y = yAt(z);
+    ctx.setLineDash([7, 4]);
+    ctx.strokeStyle = '#ffb400'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(W - P.r, y); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(255,180,0,.08)'; ctx.fillRect(P.l, y - 3, cW, 6);
-    ctx.fillStyle = '#ffb400'; ctx.textAlign = 'right'; ctx.fillText(N(z, 3), W - P.r - 2, y - 4);
-  });
-}
-
-/* Crosshair */
-function drawCrosshair(xPx, yPx) {
-  const c = ST.chart;
-  if (!c.pts?.length) return;
-  const { P, W, H, cW, cH, minV, maxV, range, span, pts, DPR } = c;
-
-  const canvas = G('cvX');
-  const ctx    = canvas.getContext('2d');
-  ctx.clearRect(0, 0, W * DPR, H * DPR);
-  ctx.save(); ctx.scale(DPR, DPR);
-
-  if (xPx < P.l || xPx > W - P.r || yPx < P.t || yPx > P.t + cH) {
-    ctx.restore(); T('cross-info', ''); return;
+    ctx.fillStyle = '#ffb400'; ctx.textAlign = 'right';
+    ctx.fillText(priceFmt(z, range), W - P.r - 2, y - 3);
   }
 
-  const tHov = pts[0].t + (xPx - P.l) / cW * span;
-  let best = pts[0], best_d = Infinity;
-  pts.forEach(p => { const d = Math.abs(p.t - tHov); if (d < best_d) { best_d = d; best = p; } });
-  const snapX = P.l + (best.t - pts[0].t) / span * cW;
-  const snapY = P.t + (1 - (best.v - minV) / range) * cH;
+  // OHLC bar update
+  if (last) {
+    const sym = ST.pair === 'VES' ? 'Bs.' : 'S/';
+    const upcol = last.c >= last.o ? 'var(--green)' : 'var(--red)';
+    const chg = ((last.c - last.o) / last.o * 100);
+    G('ohlc-bar').innerHTML =
+      `<span>O <span style="color:var(--text)">${priceFmt(last.o,range)}</span></span>` +
+      `<span>H <span style="color:var(--green)">${priceFmt(last.h,range)}</span></span>` +
+      `<span>L <span style="color:var(--red)">${priceFmt(last.l,range)}</span></span>` +
+      `<span>C <span style="color:${upcol}">${priceFmt(last.c,range)}</span></span>` +
+      `<span style="color:${upcol}">${chg>=0?'+':''}${chg.toFixed(2)}%</span>`;
+  }
+}
 
-  ctx.strokeStyle = 'rgba(220,232,248,.2)'; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+function drawCrosshair(xPx, yPx) {
+  const c = ST.chart;
+  if (!c.candles?.length) return;
+  const { P, W, H, cW, cH, minV, range, DPR } = c;
+  const visible = c.candles.slice(c.viewStart, c.viewStart + c.viewCount);
+  if (visible.length === 0) return;
+
+  const canvas = G('cvX');
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0, 0, W*DPR, H*DPR);
+  ctx.scale(DPR, DPR);
+
+  if (xPx < P.l || xPx > W - P.r || yPx < P.t || yPx > P.t + cH) {
+    T('cross-info', ''); return;
+  }
+
+  const candleW = cW / visible.length;
+  const idx = Math.max(0, Math.min(visible.length - 1, Math.floor((xPx - P.l) / candleW)));
+  const k = visible[idx];
+  const snapX = P.l + idx * candleW + candleW / 2;
+  const snapY = yPx;
+
+  ctx.strokeStyle = 'rgba(220,232,248,.25)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
   ctx.beginPath(); ctx.moveTo(snapX, P.t); ctx.lineTo(snapX, P.t + cH); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(P.l, snapY); ctx.lineTo(W - P.r, snapY); ctx.stroke();
   ctx.setLineDash([]);
 
-  ctx.beginPath(); ctx.arc(snapX, snapY, 5, 0, Math.PI * 2);
-  ctx.fillStyle = '#00cfff'; ctx.fill();
-  ctx.strokeStyle = '#03060e'; ctx.lineWidth = 2; ctx.stroke();
-
-  ctx.fillStyle = '#00cfff';
-  ctx.beginPath(); roundRect(ctx, W - P.r + 1, snapY - 8, 54, 16, 3); ctx.fill();
-  ctx.fillStyle = '#03060e'; ctx.font = 'bold 10px IBM Plex Mono,monospace';
-  ctx.textAlign = 'left'; ctx.fillText(N(best.v, 3), W - P.r + 5, snapY + 4);
-
-  const d   = new Date(best.t * 1000);
-  const tlb = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-  ctx.fillStyle = 'rgba(80,106,138,.6)';
-  ctx.beginPath(); roundRect(ctx, snapX - 19, H - P.b + 1, 38, 14, 3); ctx.fill();
-  ctx.fillStyle = '#dce8f8'; ctx.font = '9px IBM Plex Mono,monospace';
-  ctx.textAlign = 'center'; ctx.fillText(tlb, snapX, H - P.b + 11);
-
-  ctx.restore();
-
-  const sym  = ST.pair === 'VES' ? 'Bs.' : 'S/';
-  const dStr = d.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' }) + ' ' + tlb;
-  T('cross-info', sym + ' ' + N(best.v, 3) + ' · ' + dStr);
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
-  ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
-  ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
-  ctx.closePath();
+  const sym = ST.pair === 'VES' ? 'Bs.' : 'S/';
+  const d = new Date(k.t * 1000);
+  const tlb = d.toLocaleString('es-PE', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const upcol = k.c >= k.o ? 'var(--green)' : 'var(--red)';
+  T('cross-info', `${sym} ${priceFmt(k.c, range)} · ${tlb}`);
 }
 
 function clearCross() {
   const c = G('cvX');
-  if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
-  T('cross-info', '');
+  if (c) { const ctx = c.getContext('2d'); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,c.width,c.height); }
+  T('cross-info','');
 }
 
 let chartEventsInit = false;
@@ -1518,27 +1579,102 @@ function initChartEvents() {
   if (chartEventsInit) return;
   chartEventsInit = true;
   const wrap = G('chartWrap');
+
+  // Mouse pan + wheel zoom
+  wrap.addEventListener('mousedown', e => {
+    ST.chart.isDragging = true; ST.chart.lastX = e.clientX;
+  });
   wrap.addEventListener('mousemove', e => {
     const r = wrap.getBoundingClientRect();
-    drawCrosshair(e.clientX - r.left, e.clientY - r.top);
+    if (ST.chart.isDragging) {
+      const dx = e.clientX - ST.chart.lastX;
+      ST.chart.lastX = e.clientX;
+      const candleW = ST.chart.cW / ST.chart.viewCount;
+      const shift = Math.round(-dx / candleW);
+      ST.chart.viewStart = Math.max(0, ST.chart.viewStart + shift);
+      drawChart();
+    } else {
+      drawCrosshair(e.clientX - r.left, e.clientY - r.top);
+    }
   });
-  wrap.addEventListener('mouseleave', clearCross);
+  wrap.addEventListener('mouseup', () => ST.chart.isDragging = false);
+  wrap.addEventListener('mouseleave', () => { ST.chart.isDragging = false; clearCross(); });
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 1.2 : 0.83;
+    ST.chart.viewCount = Math.max(10, Math.min(500, Math.round(ST.chart.viewCount * factor)));
+    drawChart();
+  }, { passive: false });
+
+  // Touch: tap, pan, pinch
+  let touchMode = null; // 'pan' | 'pinch'
   wrap.addEventListener('touchstart', e => {
     e.preventDefault();
-    const r = wrap.getBoundingClientRect(), t = e.touches[0];
-    drawCrosshair(t.clientX - r.left, t.clientY - r.top);
+    if (e.touches.length === 1) {
+      touchMode = 'pan';
+      ST.chart.lastX = e.touches[0].clientX;
+      const r = wrap.getBoundingClientRect();
+      drawCrosshair(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
+    } else if (e.touches.length === 2) {
+      touchMode = 'pinch';
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      ST.chart.pinchDist = Math.sqrt(dx*dx + dy*dy);
+    }
   }, { passive: false });
   wrap.addEventListener('touchmove', e => {
     e.preventDefault();
-    const r = wrap.getBoundingClientRect(), t = e.touches[0];
-    drawCrosshair(t.clientX - r.left, t.clientY - r.top);
+    if (touchMode === 'pan' && e.touches.length === 1) {
+      const t = e.touches[0];
+      const dx = t.clientX - ST.chart.lastX;
+      ST.chart.lastX = t.clientX;
+      const candleW = ST.chart.cW / ST.chart.viewCount;
+      if (Math.abs(dx) > candleW * 0.5) {
+        const shift = Math.round(-dx / candleW);
+        ST.chart.viewStart = Math.max(0, Math.min((ST.chart.candles.length || 1) - 1, ST.chart.viewStart + shift));
+        drawChart();
+      }
+      const r = wrap.getBoundingClientRect();
+      drawCrosshair(t.clientX - r.left, t.clientY - r.top);
+    } else if (touchMode === 'pinch' && e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const ratio = ST.chart.pinchDist / dist;
+      ST.chart.viewCount = Math.max(10, Math.min(500, Math.round(ST.chart.viewCount * ratio)));
+      ST.chart.pinchDist = dist;
+      drawChart();
+    }
   }, { passive: false });
-  wrap.addEventListener('touchend', () => setTimeout(clearCross, 1500));
+  wrap.addEventListener('touchend', e => {
+    if (e.touches.length === 0) { touchMode = null; setTimeout(clearCross, 1500); }
+  });
+
+  // Double tap = reset zoom
+  let lastTap = 0;
+  wrap.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      ST.chart.viewCount = 60;
+      ST.chart.viewStart = Math.max(0, (ST.chart.candles.length || 0) - 60);
+      drawChart();
+    }
+    lastTap = now;
+  });
 }
 
-/* ════════════════════════════════════════════════
-   ZONAS
-════════════════════════════════════════════════ */
+function setTF(min, el) {
+  ST.tfMin = min;
+  document.querySelectorAll('#tf-pills .pill').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  // Reset view to latest
+  ST.chart.viewCount = 60;
+  ST.chart.viewStart = -1; // will auto-snap to end
+  clearCross();
+  drawChart();
+}
+
+
 function addZone() {
   const p = parseFloat(G('zone-in').value); if (!p || isNaN(p)) return;
   if (!ST.zones[ST.pair]) ST.zones[ST.pair] = [];
@@ -1808,11 +1944,6 @@ function setPair(pair, el) {
   ST.pair = pair;
   document.querySelectorAll('#pair-pills .pill').forEach(t => t.classList.remove('on'));
   el.classList.add('on'); clearCross(); renderChips(); drawChart();
-}
-function setTF(h, el) {
-  ST.tfH = h;
-  document.querySelectorAll('#tf-pills .pill').forEach(t => t.classList.remove('on'));
-  el.classList.add('on'); clearCross(); drawChart();
 }
 
 /* Clock + resize */
