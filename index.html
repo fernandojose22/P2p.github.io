@@ -223,9 +223,10 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
   </div>
 
   <div class="tabs">
-    <button class="tab on" onclick="goTab('calc',this)">&#x1F4CA; Calculadora</button>
-    <button class="tab"    onclick="goTab('bot',this)">&#x1F916; Bot P2P</button>
-    <button class="tab"    onclick="goTab('chart',this)">&#x1F4C8; Mercado</button>
+    <button class="tab on" onclick="goTab('calc',this)">&#x1F4CA; Calc</button>
+    <button class="tab"    onclick="goTab('bot',this)">&#x1F916; Bot</button>
+    <button class="tab"    onclick="goTab('stats',this)">&#x1F4C9; Stats</button>
+    <button class="tab"    onclick="goTab('chart',this)">&#x1F4C8; Chart</button>
   </div>
 
   <!-- ══ CALCULADORA ══ -->
@@ -474,6 +475,61 @@ cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
 <div class="schips">
   <div class="sc" id="sc-bot"><span class="dot load" id="d-bot"></span><span id="sc-txt">Esperando...</span></div>
   <span id="sc-cyc" style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;font-size:9px">0 ciclos</span>
+</div>
+```
+
+  </div>
+
+  <!-- ══ STATS ══ -->
+
+  <div id="v-stats" class="view">
+    <div class="card">
+      <div class="ctitle">Meta Diaria (USDT)</div>
+      <div class="row" style="margin-bottom:8px">
+        <div class="field">
+          <label>Meta Diaria USDT</label>
+          <input type="number" id="goal-daily" value="50" step="5" inputmode="decimal" oninput="saveGoals();renderStats()">
+        </div>
+        <div class="field">
+          <label>Meta Mensual USDT</label>
+          <input type="number" id="goal-monthly" value="1500" step="50" inputmode="decimal" oninput="saveGoals();renderStats()">
+        </div>
+      </div>
+      <div id="goal-bars"></div>
+    </div>
+
+```
+<div class="card">
+  <div class="ctitle">Estadisticas</div>
+  <div class="row" style="margin-bottom:10px">
+    <div class="field">
+      <label>Filtro Moneda</label>
+      <select id="stats-filter" onchange="renderStats()">
+        <option value="all">Todas</option>
+        <option value="VES">Solo VES</option>
+        <option value="PEN">Solo PEN</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Periodo</label>
+      <select id="stats-period" onchange="renderStats()">
+        <option value="today">Hoy</option>
+        <option value="week">Esta semana</option>
+        <option value="month" selected>Este mes</option>
+        <option value="all">Todo el historial</option>
+      </select>
+    </div>
+  </div>
+  <div id="stats-grid"></div>
+</div>
+
+<div class="card">
+  <div class="ctitle">Historial de Ciclos <span id="cycles-count" style="color:var(--dim);font-size:8px;margin-left:6px"></span></div>
+  <div id="cycles-list" style="max-height:320px;overflow-y:auto"></div>
+  <div style="display:flex;gap:6px;margin-top:8px">
+    <button class="autofill-btn" onclick="exportCycles()" style="flex:1">Exportar CSV</button>
+    <button class="autofill-btn" onclick="clearCycles()" style="flex:1;color:var(--red);border-color:rgba(255,59,92,.25)">Borrar todo</button>
+  </div>
 </div>
 ```
 
@@ -975,10 +1031,21 @@ async function runBotCycle() {
       <div class="opp-profit-val ${gainClass}">${N(gananciaPct,2)}%</div>
     </div>`;
 
+    // Stage cycle data for Register button
+    ST.stagedCycle = {
+      ts: Date.now(), fiat, bank, tableType, tipo,
+      precioVenta: precioVentaRef, precioVentaEfectivo,
+      precioRebuy, costoRebuy,
+      gananciaPorUsdt, gananciaTotalU, gananciaPct,
+      usdtAVender, capitalFiat, fee
+    };
+
     html += `<div class="opp-footer">
       <span>Capital: ${sym} ${N(capitalFiat,0)}</span>
       <span style="color:var(--green);font-weight:600">&#x25CF; LIVE ${ts}</span>
-    </div></div>`;
+    </div>
+    <button class="autofill-btn" onclick="registerStagedCycle(this)" style="width:100%;margin-top:8px;padding:10px;font-size:11px;background:rgba(0,207,255,.1);border-color:rgba(0,207,255,.4);color:var(--cyan)">&#x2795; REGISTRAR CICLO</button>
+    </div>`;
 
     G('bot-alerts').innerHTML = html;
     ST.bot.cycles++;
@@ -1365,8 +1432,194 @@ function renderChips() {
 }
 
 /* ════════════════════════════════════════════════
-   NAVEGACION
+   MODULO: REGISTRO DE CICLOS + STATS
 ════════════════════════════════════════════════ */
+ST.cycles = storageGet('fp2p_cycles_v1', []);
+ST.goals = storageGet('fp2p_goals_v1', { daily: 50, monthly: 1500 });
+
+function saveGoals() {
+  ST.goals.daily = parseFloat(G('goal-daily').value) || 50;
+  ST.goals.monthly = parseFloat(G('goal-monthly').value) || 1500;
+  storageSet('fp2p_goals_v1', ST.goals);
+}
+
+function loadGoals() {
+  G('goal-daily').value = ST.goals.daily;
+  G('goal-monthly').value = ST.goals.monthly;
+}
+
+function registerStagedCycle(btn) {
+  if (!ST.stagedCycle) return;
+  // Update timestamp to NOW (registration time, not signal time)
+  ST.stagedCycle.ts = Date.now();
+  ST.cycles.unshift({ ...ST.stagedCycle });
+  if (ST.cycles.length > 1000) ST.cycles.length = 1000;
+  storageSet('fp2p_cycles_v1', ST.cycles);
+  // Visual feedback
+  btn.innerHTML = '&#x2705; CICLO REGISTRADO';
+  btn.style.background = 'rgba(0,230,122,.15)';
+  btn.style.color = 'var(--green)';
+  btn.style.borderColor = 'rgba(0,230,122,.4)';
+  btn.disabled = true;
+}
+
+function registerCycle(data) {
+  ST.cycles.unshift(data);
+  if (ST.cycles.length > 1000) ST.cycles.length = 1000;
+  storageSet('fp2p_cycles_v1', ST.cycles);
+  // Visual feedback
+  const btns = document.querySelectorAll('button');
+  btns.forEach(b => {
+    if (b.textContent.includes('REGISTRAR CICLO')) {
+      b.innerHTML = '&#x2705; CICLO REGISTRADO';
+      b.style.background = 'rgba(0,230,122,.15)';
+      b.style.color = 'var(--green)';
+      b.style.borderColor = 'rgba(0,230,122,.4)';
+      b.disabled = true;
+    }
+  });
+}
+
+function filterCycles() {
+  const fiatFilter = G('stats-filter')?.value || 'all';
+  const periodFilter = G('stats-period')?.value || 'month';
+  const now = Date.now();
+  let cutoff = 0;
+  if (periodFilter === 'today') {
+    const d = new Date(); d.setHours(0,0,0,0); cutoff = d.getTime();
+  } else if (periodFilter === 'week') {
+    cutoff = now - 7*24*3600*1000;
+  } else if (periodFilter === 'month') {
+    cutoff = now - 30*24*3600*1000;
+  }
+  return ST.cycles.filter(c => {
+    if (c.ts < cutoff) return false;
+    if (fiatFilter !== 'all' && c.fiat !== fiatFilter) return false;
+    return true;
+  });
+}
+
+function renderStats() {
+  if (!G('v-stats').classList.contains('on')) return;
+  loadGoals();
+  const filtered = filterCycles();
+
+  // Goals progress (always uses today for daily, month for monthly)
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const monthStart = Date.now() - 30*24*3600*1000;
+  const todayCycles = ST.cycles.filter(c => c.ts >= todayStart.getTime());
+  const monthCycles = ST.cycles.filter(c => c.ts >= monthStart);
+  const todayUSDT = todayCycles.reduce((s,c) => s + (c.gananciaTotalU||0), 0);
+  const monthUSDT = monthCycles.reduce((s,c) => s + (c.gananciaTotalU||0), 0);
+  const dailyPct = Math.min(100, (todayUSDT / ST.goals.daily * 100));
+  const monthlyPct = Math.min(100, (monthUSDT / ST.goals.monthly * 100));
+
+  G('goal-bars').innerHTML = `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dim);margin-bottom:4px">
+        <span>HOY: ${N(todayUSDT,2)} / ${N(ST.goals.daily,0)} USDT</span>
+        <span style="color:${dailyPct>=100?'var(--green)':'var(--cyan)'};font-weight:600">${N(dailyPct,1)}%</span>
+      </div>
+      <div style="height:6px;background:var(--br);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${dailyPct}%;background:${dailyPct>=100?'var(--green)':'var(--cyan)'};transition:width .3s"></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dim);margin-bottom:4px">
+        <span>MES: ${N(monthUSDT,2)} / ${N(ST.goals.monthly,0)} USDT</span>
+        <span style="color:${monthlyPct>=100?'var(--green)':'var(--gold)'};font-weight:600">${N(monthlyPct,1)}%</span>
+      </div>
+      <div style="height:6px;background:var(--br);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${monthlyPct}%;background:${monthlyPct>=100?'var(--green)':'var(--gold)'};transition:width .3s"></div>
+      </div>
+    </div>`;
+
+  // Stats grid
+  if (filtered.length === 0) {
+    G('stats-grid').innerHTML = '<div class="no-opp" style="padding:20px;font-size:10px">Sin ciclos en este periodo</div>';
+  } else {
+    const totalU = filtered.reduce((s,c) => s + (c.gananciaTotalU||0), 0);
+    const avgPct = filtered.reduce((s,c) => s + (c.gananciaPct||0), 0) / filtered.length;
+    const best = filtered.reduce((a,b) => (a.gananciaTotalU||0) > (b.gananciaTotalU||0) ? a : b);
+    const worst = filtered.reduce((a,b) => (a.gananciaTotalU||0) < (b.gananciaTotalU||0) ? a : b);
+    const rojos = filtered.filter(c => c.tipo === 'rojo').length;
+    const verdes = filtered.filter(c => c.tipo === 'verde').length;
+
+    G('stats-grid').innerHTML = `
+      <div class="opp-grid">
+        <div class="oi"><div class="oi-l">Total Ganado</div>
+          <div class="oi-v ${totalU>=0?'green':'red'}" style="font-size:15px">${totalU>=0?'+':''}${N(totalU,2)} USDT</div></div>
+        <div class="oi"><div class="oi-l">Ciclos</div>
+          <div class="oi-v cyan" style="font-size:15px">${filtered.length}</div></div>
+        <div class="oi"><div class="oi-l">Promedio %</div>
+          <div class="oi-v gold">${N(avgPct,3)}%</div></div>
+        <div class="oi"><div class="oi-l">Promedio USDT/ciclo</div>
+          <div class="oi-v dim">${N(totalU/filtered.length,3)}</div></div>
+        <div class="oi"><div class="oi-l">Mejor ciclo</div>
+          <div class="oi-v green">+${N(best.gananciaTotalU||0,2)}</div></div>
+        <div class="oi"><div class="oi-l">Peor ciclo</div>
+          <div class="oi-v red">${N(worst.gananciaTotalU||0,2)}</div></div>
+        <div class="oi"><div class="oi-l">Ventas Directas</div>
+          <div class="oi-v red">${rojos}</div></div>
+        <div class="oi"><div class="oi-l">Anuncios Publicados</div>
+          <div class="oi-v green">${verdes}</div></div>
+      </div>`;
+  }
+
+  // Cycles list
+  T('cycles-count', '(' + ST.cycles.length + ' total)');
+  if (filtered.length === 0) {
+    G('cycles-list').innerHTML = '';
+  } else {
+    G('cycles-list').innerHTML = filtered.slice(0,50).map((c,i) => {
+      const d = new Date(c.ts);
+      const time = d.toLocaleString('es-PE', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const sym = c.fiat === 'VES' ? 'Bs.' : 'S/';
+      const color = (c.gananciaTotalU||0) >= 0 ? 'var(--green)' : 'var(--red)';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--br);font-size:10px">
+        <span style="color:var(--dim2);font-family:'IBM Plex Mono',monospace;min-width:72px">${time}</span>
+        <span class="hist-type ${c.tipo}" style="font-size:8px">${c.tipo==='rojo'?'DIR':'PUB'}</span>
+        <span style="flex:1;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.bank} &middot; ${sym}${N(c.precioVenta,2)}&rarr;${N(c.costoRebuy,2)}</span>
+        <span style="color:${color};font-family:'IBM Plex Mono',monospace;font-weight:600">${(c.gananciaTotalU||0)>=0?'+':''}${N(c.gananciaTotalU||0,2)}</span>
+        <span class="chip-x" onclick="deleteCycle(${c.ts})" style="color:var(--dim);cursor:pointer">&#x2715;</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function deleteCycle(ts) {
+  ST.cycles = ST.cycles.filter(c => c.ts !== ts);
+  storageSet('fp2p_cycles_v1', ST.cycles);
+  renderStats();
+}
+
+function clearCycles() {
+  if (!confirm('Borrar TODOS los ciclos registrados? Esta accion no se puede deshacer.')) return;
+  ST.cycles = [];
+  storageSet('fp2p_cycles_v1', ST.cycles);
+  renderStats();
+}
+
+function exportCycles() {
+  if (ST.cycles.length === 0) { alert('No hay ciclos para exportar'); return; }
+  const headers = ['Fecha','Fiat','Banco','Tipo','PrecioVenta','CostoRebuy','GananciaUSDT','Pct','Capital'];
+  const rows = ST.cycles.map(c => [
+    new Date(c.ts).toLocaleString('es-PE'),
+    c.fiat, c.bank, c.tipo,
+    c.precioVenta, c.costoRebuy,
+    c.gananciaTotalU, c.gananciaPct, c.capitalFiat
+  ].join(','));
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'fp2p_ciclos_' + Date.now() + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
 function toggleHist() {
   const body = G('hist-body');
   const arrow = G('hist-arrow');
@@ -1383,6 +1636,7 @@ function goTab(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
   G('v-' + id).classList.add('on'); el.classList.add('on');
   if (id === 'chart') { renderChips(); drawChart(); initChartEvents(); }
+  if (id === 'stats') { renderStats(); }
   if (id === 'bot') {
     if (!ST.bot.on) {
       startBot();
