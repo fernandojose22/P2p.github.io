@@ -672,18 +672,20 @@ function storageSet(k, v) {
 // Try to restore zones from localStorage
 try { ST.zones = storageGet('fp2p_z14', {}); } catch {}
 
-// Wipe old chart history versions ONCE (clean slate request)
-// New data persists in v15 going forward
+// Wipe old chart history versions ONCE (clean slate request + price source changed)
+// New data persists in v16 going forward
 try {
   localStorage.removeItem('fp2p_h13_PEN');
   localStorage.removeItem('fp2p_h13_VES');
   localStorage.removeItem('fp2p_h14_PEN');
   localStorage.removeItem('fp2p_h14_VES');
+  localStorage.removeItem('fp2p_h15_PEN');
+  localStorage.removeItem('fp2p_h15_VES');
 } catch {}
 
 try {
-  ST.history.PEN = storageGet('fp2p_h15_PEN', []);
-  ST.history.VES = storageGet('fp2p_h15_VES', []);
+  ST.history.PEN = storageGet('fp2p_h16_PEN', []);
+  ST.history.VES = storageGet('fp2p_h16_VES', []);
 } catch {}
 
 /* ════════════════════════════════════════════════
@@ -697,7 +699,7 @@ function hAdd(pair, t, v) {
   if (last && Math.abs(last.t - t) < 10 && last.v === v) return;
   a.push({ t, v });
   if (a.length > 15000) a.splice(0, a.length - 15000);
-  storageSet('fp2p_h15_' + pair, a);
+  storageSet('fp2p_h16_' + pair, a);
 }
 
 /* ════════════════════════════════════════════════
@@ -729,22 +731,56 @@ async function fetchBTC() {
 fetchBTC(); setInterval(fetchBTC, 30000);
 
 /* ════════════════════════════════════════════════
-   P2P TICKER (CriptoYa - CORS abierto)
+   P2P TICKER — DATOS DIRECTOS DE BINANCE VIA WORKER
+   Consulta el mejor precio de la tabla roja (compradores)
+   = lo que tu recibes vendiendo directo
 ════════════════════════════════════════════════ */
 async function refreshP2P() {
-  async function get(fiat) {
+  const workerUrl = getWorkerUrl?.() || '';
+
+  async function getViaWorker(fiat) {
+    if (!workerUrl) return null;
+    try {
+      const r = await fetch(workerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          asset: 'USDT', fiat, tradeType: 'SELL',
+          page: 1, rows: 1, payTypes: [],
+          publisherType: null, merchantCheck: false,
+          transAmount: '',
+        }),
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!r.ok) return null;
+      const d = await r.json();
+      if (d?.code !== '000000' || !d?.data?.length) return null;
+      return parseFloat(d.data[0]?.adv?.price ?? 0) || null;
+    } catch { return null; }
+  }
+
+  async function getViaCriptoYa(fiat) {
     try {
       const r = await fetch(`https://criptoya.com/api/usdt/${fiat.toLowerCase()}`,
         { signal: AbortSignal.timeout(10000) });
       if (!r.ok) return null;
       const d = await r.json();
       for (const k of ['binancep2p','bybitp2p','okexp2p','bitgetp2p','bingxp2p']) {
-        if (d[k]?.ask > 0) return d[k].ask;
+        if (d[k]?.bid > 0) return d[k].bid;
       }
-      for (const k of Object.keys(d)) { if (d[k]?.ask > 0) return d[k].ask; }
+      for (const k of Object.keys(d)) { if (d[k]?.bid > 0) return d[k].bid; }
       return null;
     } catch { return null; }
   }
+
+  async function get(fiat) {
+    // Try Worker first (exact Binance data), fallback to CriptoYa if Worker not configured
+    const w = await getViaWorker(fiat);
+    if (w) return w;
+    return await getViaCriptoYa(fiat);
+  }
+
   const [p, v] = await Promise.all([get('PEN'), get('VES')]);
   const now = tNow();
   if (p) { ST.p2p.PEN = p; T('tk-pen', 'S/ ' + N(p, 3)); dot('d-pen', 'ok'); hAdd('PEN', now, p); }
@@ -753,7 +789,9 @@ async function refreshP2P() {
   else dot('d-ves', 'err');
   if (G('v-chart').classList.contains('on')) drawChart();
 }
-refreshP2P(); setInterval(refreshP2P, 60000);
+// Delay first call so all functions are defined and worker URL is loaded
+setTimeout(refreshP2P, 500);
+setInterval(refreshP2P, 60000);
 
 /* ════════════════════════════════════════════════
    AUTO-FILL CALCULATOR from P2P ticker
@@ -1454,10 +1492,10 @@ function drawChart() {
   if (candles.length < 1) { hint.style.display='flex'; return; }
   hint.style.display='none';
 
-  // Init view if needed — always show at least 20 slots for breathing room
+  // Init view if needed — always show at least 40 slots for breathing room
   const c = ST.chart;
-  const MIN_SLOTS = 20;
-  if (!c.viewCount || c.viewCount < 5) c.viewCount = Math.max(MIN_SLOTS, Math.min(60, candles.length));
+  const MIN_SLOTS = 40;
+  if (!c.viewCount || c.viewCount < 5) c.viewCount = Math.max(MIN_SLOTS, Math.min(80, candles.length));
   c.viewCount = Math.max(MIN_SLOTS, Math.min(c.viewCount, Math.max(MIN_SLOTS, candles.length)));
   if (c.viewStart === undefined || c.viewStart < 0) c.viewStart = Math.max(0, candles.length - c.viewCount);
   c.viewStart = Math.max(0, Math.min(c.viewStart, Math.max(0, candles.length - c.viewCount)));
@@ -1505,7 +1543,7 @@ function drawChart() {
   Object.assign(ST.chart, { P, W, H, cW, cH, minV, maxV, range, DPR });
 
   const candleW = cW / visible.length;
-  const bodyW   = Math.max(2, candleW * 0.85);
+  const bodyW   = Math.max(2, candleW * 0.7);
 
   const xAt = i => P.l + i * candleW + candleW / 2;
   const yAt = v => P.t + (1 - (v - minV) / range) * cH;
@@ -1745,7 +1783,7 @@ function initChartEvents() {
   wrap.addEventListener('touchend', e => {
     const now = Date.now();
     if (now - lastTap < 300) {
-      ST.chart.viewCount = 60;
+      ST.chart.viewCount = 80;
       ST.chart.viewStart = Math.max(0, (ST.chart.candles.length || 0) - 60);
       drawChart();
     }
@@ -1758,7 +1796,7 @@ function setTF(min, el) {
   document.querySelectorAll('#tf-pills .pill').forEach(t => t.classList.remove('on'));
   el.classList.add('on');
   // Reset view to latest
-  ST.chart.viewCount = 60;
+  ST.chart.viewCount = 80;
   ST.chart.viewStart = -1; // will auto-snap to end
   clearCross();
   drawChart();
