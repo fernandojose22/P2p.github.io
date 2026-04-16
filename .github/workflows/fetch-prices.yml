@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: fetch-prices
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   fetch:
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Fetch prices from Binance Worker
         env:
@@ -40,4 +40,5 @@ jobs:
             exit 0
           fi
           git commit -m "chore: update prices [skip ci]"
+          git pull --rebase
           git push
