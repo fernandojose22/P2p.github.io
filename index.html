@@ -689,12 +689,103 @@ try {
 } catch {}
 
 /* ════════════════════════════════════════════════
+   LIMPIEZA RETROACTIVA DE OUTLIERS (corre 1 vez al cargar)
+   Elimina picos anomalos que ya estaban guardados en el historial
+════════════════════════════════════════════════ */
+function cleanOutliers(arr) {
+  if (arr.length < 10) return arr;
+  const cleaned = [];
+  for (let i = 0; i < arr.length; i++) {
+    const p = arr[i];
+    // Comparar contra ventana movil de los ultimos 10 puntos limpios
+    const window = cleaned.slice(-10);
+    if (window.length >= 5) {
+      const avg = window.reduce((s, x) => s + x.v, 0) / window.length;
+      const dev = Math.abs(p.v - avg) / avg;
+      if (dev > 0.05) continue; // descartar
+    }
+    cleaned.push(p);
+  }
+  return cleaned;
+}
+
+const beforePEN = ST.history.PEN.length;
+const beforeVES = ST.history.VES.length;
+ST.history.PEN = cleanOutliers(ST.history.PEN);
+ST.history.VES = cleanOutliers(ST.history.VES);
+if (beforePEN !== ST.history.PEN.length || beforeVES !== ST.history.VES.length) {
+  console.log(`Outliers limpiados: PEN ${beforePEN}->${ST.history.PEN.length}, VES ${beforeVES}->${ST.history.VES.length}`);
+  storageSet('fp2p_h16_PEN', ST.history.PEN);
+  storageSet('fp2p_h16_VES', ST.history.VES);
+}
+
+/* ════════════════════════════════════════════════
+   LOAD prices.json (background fetched by GitHub Actions)
+   Carga el historial de fondo y lo mergea con datos locales
+════════════════════════════════════════════════ */
+async function loadPricesJson() {
+  try {
+    // Cache buster so siempre traiga la version mas reciente
+    const r = await fetch('prices.json?cb=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (!data?.PEN || !data?.VES) return;
+
+    // Merge: combinar puntos remotos con locales sin duplicados
+    function mergeHistory(local, remote) {
+      const seen = new Set(local.map(p => p.t));
+      const merged = [...local];
+      for (const p of remote) {
+        if (!seen.has(p.t)) {
+          merged.push(p);
+          seen.add(p.t);
+        }
+      }
+      merged.sort((a, b) => a.t - b.t);
+      if (merged.length > 30000) merged.splice(0, merged.length - 30000);
+      return merged;
+    }
+
+    ST.history.PEN = mergeHistory(ST.history.PEN, data.PEN);
+    ST.history.VES = mergeHistory(ST.history.VES, data.VES);
+
+    // Persist merged result
+    storageSet('fp2p_h16_PEN', ST.history.PEN);
+    storageSet('fp2p_h16_VES', ST.history.VES);
+
+    // Refresh chart if visible
+    if (G('v-chart')?.classList.contains('on')) drawChart();
+
+    console.log(`prices.json cargado: PEN=${data.PEN.length}, VES=${data.VES.length}`);
+  } catch (e) {
+    console.warn('No se pudo cargar prices.json:', e.message);
+  }
+}
+// Cargar al inicio y refrescar cada 5 minutos
+setTimeout(loadPricesJson, 800);
+setInterval(loadPricesJson, 5 * 60 * 1000);
+
+/* ════════════════════════════════════════════════
    HISTORIAL DE PRECIOS (CHART)
 ════════════════════════════════════════════════ */
 function hGet(pair) { return ST.history[pair] || []; }
 function hAdd(pair, t, v) {
   if (!ST.history[pair]) ST.history[pair] = [];
   const a = ST.history[pair];
+
+  // ── FILTRO ANTI-OUTLIER ──────────────────────────
+  // Si tenemos al menos 5 puntos recientes, comparar contra el promedio
+  // Descartar cualquier precio que se desvie mas del 5% del promedio reciente
+  if (a.length >= 5) {
+    const recent = a.slice(-10);
+    const avg = recent.reduce((s, p) => s + p.v, 0) / recent.length;
+    const deviation = Math.abs(v - avg) / avg;
+    if (deviation > 0.05) {
+      console.warn(`Outlier descartado en ${pair}: ${v} (promedio reciente ${avg.toFixed(3)}, desviacion ${(deviation*100).toFixed(1)}%)`);
+      return;
+    }
+  }
+
   const last = a[a.length - 1];
   if (last && Math.abs(last.t - t) < 10 && last.v === v) return;
   a.push({ t, v });
