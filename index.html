@@ -9,18 +9,17 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#070910;
-  --cyan:#34aadc;--gold:#ff9500;--green:#34c759;--red:#ff3b30;
-  --text:rgba(255,255,255,.95);--dim:rgba(255,255,255,.48);--dim2:rgba(255,255,255,.22);
-  --card-bg:rgba(28,32,48,.92);
-  --input-bg:rgba(40,45,65,.95);
-  --border:rgba(255,255,255,.13);
-  --border2:rgba(255,255,255,.22);
-  /* legacy */
-  --s1:rgba(28,32,48,.92);--s2:rgba(40,45,65,.95);--s3:rgba(50,56,80,.95);
-  --br:rgba(255,255,255,.13);--br2:rgba(255,255,255,.22);
-  --g1:rgba(28,32,48,.92);--g2:rgba(40,45,65,.95);--g3:rgba(50,56,80,.95);
-  --gb:rgba(255,255,255,.13);--gb2:rgba(255,255,255,.22);
+  --bg:#03060e;
+  --cyan:#00cfff;--gold:#ffb400;--green:#00e07a;--red:#ff3b5c;
+  --text:#dce8f8;--dim:#506a8a;--dim2:#243348;
+  --card-bg:#080f1c;
+  --input-bg:#0c1526;
+  --border:#182438;
+  --border2:#1e2e45;
+  --s1:#080f1c;--s2:#0c1526;--s3:#111d30;
+  --br:#182438;--br2:#1e2e45;
+  --g1:#080f1c;--g2:#0c1526;--g3:#111d30;
+  --gb:#182438;--gb2:#1e2e45;
 }
 
 html,body{
@@ -30,20 +29,18 @@ color:var(–text);
 font-family:-apple-system,‘SF Pro Text’,‘Helvetica Neue’,sans-serif;
 overflow-x:hidden;
 }
-
 /* ─ FONDO AMBIENTE ─ */
 body::before{
 content:’’;position:fixed;inset:0;pointer-events:none;z-index:0;
 background:
-radial-gradient(ellipse 100% 60% at 0% 0%, rgba(0,60,120,.55) 0%, transparent 60%),
-radial-gradient(ellipse 80% 70% at 100% 100%, rgba(20,40,80,.45) 0%, transparent 55%),
-radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,40,90,.3) 0%, transparent 70%);
+radial-gradient(ellipse 70% 50% at 0% 0%, rgba(0,207,255,.05) 0%, transparent 55%),
+radial-gradient(ellipse 50% 60% at 100% 100%, rgba(255,180,0,.04) 0%, transparent 55%);
 }
 
 /* ─ TICKER ─ */
 #ticker{
 position:sticky;top:0;z-index:200;
-background:rgba(10,12,22,.96);
+background:rgba(3,6,14,.97);
 border-bottom:1px solid var(–border);
 display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;height:62px;
 }
@@ -62,7 +59,8 @@ text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:4
 @keyframes pulse{50%{opacity:.25;transform:scale(.5)}}
 
 /* ─ SHELL ─ */
-#app{max-width:820px;margin:0 auto;padding:14px 12px 90px;position:relative;z-index:1}
+#app{max-width:430px;margin:0 auto;padding:12px 14px 90px;position:relative;z-index:1}
+@media(min-width:431px){#app{max-width:820px;padding:14px 16px 90px}}
 .logo-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;margin-top:4px}
 .logo{font-size:19px;font-weight:700;letter-spacing:-.5px}
 .fp{color:var(–cyan)}.logo b{color:var(–text);font-weight:700}
@@ -79,12 +77,12 @@ background:rgba(255,149,0,.10);
 position:fixed;bottom:0;left:0;right:0;
 display:flex;
 padding:8px 10px max(12px,env(safe-area-inset-bottom));
-background:rgba(10,12,22,.97);
+background:rgba(3,6,14,.97);
 border-top:1px solid var(–border);
 z-index:200;gap:4px;
 }
 .tab{
-flex:1;padding:7px 4px 5px;
+flex:1;padding:8px 2px 6px;
 border-radius:14px;
 border:1px solid transparent;
 background:transparent;
@@ -162,7 +160,7 @@ border-radius:13px;
 color:var(–text) !important;
 -webkit-text-fill-color:var(–text) !important;
 font-size:15px;
-padding:12px 14px;
+padding:13px 15px;
 outline:none;width:100%;
 -webkit-appearance:none;appearance:none;
 transition:border-color .2s,background .2s;
@@ -227,7 +225,7 @@ background:var(–input-bg);
 border:1px solid var(–border);
 border-radius:18px;overflow:hidden;
 }
-.rr{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;
+.rr{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;
 border-bottom:1px solid rgba(255,255,255,.06)}
 .rr:last-child{border-bottom:none;background:rgba(52,170,220,.05)}
 .rl{font-size:10px;color:var(–dim);line-height:1.4}
@@ -251,12 +249,12 @@ border-radius:99px;transition:width .1s linear;width:100%}
 border-radius:22px;padding:16px;margin-bottom:10px;border:1px solid;
 animation:slideFromRight .3s cubic-bezier(.22,1,.36,1) both;
 }
-.opp-card.verde{background:rgba(20,50,35,.9);border-color:rgba(52,199,89,.25)}
-.opp-card.rojo{background:rgba(50,20,20,.9);border-color:rgba(255,59,48,.22)}
+.opp-card.verde{background:linear-gradient(135deg,rgba(0,230,122,.07),rgba(0,207,255,.03));border-color:rgba(0,230,122,.3)}
+.opp-card.rojo{background:linear-gradient(135deg,rgba(255,59,92,.07),rgba(255,180,0,.03));border-color:rgba(255,59,92,.3)}
 .opp-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;
 padding:4px 12px;border-radius:99px;margin-bottom:10px}
-.opp-badge.verde{background:rgba(52,199,89,.16);color:var(–green);border:1px solid rgba(52,199,89,.3)}
-.opp-badge.rojo{background:rgba(255,59,48,.15);color:var(–red);border:1px solid rgba(255,59,48,.28)}
+.opp-badge.verde{background:rgba(0,230,122,.15);color:var(–green);border:1px solid rgba(0,230,122,.3)}
+.opp-badge.rojo{background:rgba(255,59,92,.15);color:var(–red);border:1px solid rgba(255,59,92,.3)}
 .opp-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}
 .oi{background:rgba(255,255,255,.05);border:1px solid var(–border);border-radius:14px;padding:10px 12px}
 .oi-l{font-size:8px;color:var(–dim);margin-bottom:4px;letter-spacing:.05em;text-transform:uppercase}
@@ -308,7 +306,7 @@ color:var(–dim);font-size:10px;font-weight:600;cursor:pointer;font-family:inhe
 #ci-pts{font-size:9px;color:var(–dim2)}
 #cross-info{font-size:11px;color:var(–cyan);font-weight:600}
 #ohlc-bar{display:flex;gap:10px;font-size:9px;margin-bottom:6px;color:var(–dim);min-height:14px}
-#chartWrap{width:100%;height:280px;background:rgba(10,13,22,.95);border:1px solid var(–border);
+#chartWrap{width:100%;height:280px;background:#080f1c;border:1px solid var(–border);
 border-radius:20px;overflow:hidden;position:relative;margin-bottom:10px;
 cursor:crosshair;touch-action:none;user-select:none}
 #cv,#cvX{display:block;position:absolute;top:0;left:0;pointer-events:none}
@@ -415,12 +413,12 @@ cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;
     </div>
     <div class="row">
       <div class="field">
-        <label>TC Compra (Fiat/USDT)</label>
-        <input type="number" id="s-buy" placeholder="618.00" step="0.01" inputmode="decimal" oninput="calcS()">
+        <label>&#x1F7E2; TC Venta#x1F534; TC Venta (Fiat/USDT)</label>
+        <input type="number" id="s-sell" placeholder="635.00" step="0.01" inputmode="decimal" oninput="calcS()">
       </div>
       <div class="field">
-        <label>TC Venta (Fiat/USDT)</label>
-        <input type="number" id="s-sell" placeholder="635.00" step="0.01" inputmode="decimal" oninput="calcS()">
+        <label>&#x1F534; TC Compra#x1F7E2; TC Compra (Fiat/USDT)</label>
+        <input type="number" id="s-buy" placeholder="618.00" step="0.01" inputmode="decimal" oninput="calcS()">
       </div>
     </div>
     <div class="row">
@@ -520,12 +518,12 @@ cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;
     </div>
     <div class="row">
       <div class="field">
-        <label>Precio BTC en P2P (Fiat/BTC)</label>
-        <input type="number" id="v-buy" placeholder="229000" step="100" inputmode="decimal" oninput="calcV()">
+        <label>&#x1F7E2; Vendo USDT#x1F534; Vendo USDT a (Fiat/USDT)</label>
+        <input type="number" id="v-sell" placeholder="635" step="0.01" inputmode="decimal" oninput="calcV()">
       </div>
       <div class="field">
-        <label>Vendo USDT a (Fiat/USDT)</label>
-        <input type="number" id="v-sell" placeholder="635" step="0.01" inputmode="decimal" oninput="calcV()">
+        <label>&#x1F534; Precio BTC#x1F7E2; Precio BTC en P2P (Fiat/BTC)</label>
+        <input type="number" id="v-buy" placeholder="229000" step="100" inputmode="decimal" oninput="calcV()">
       </div>
     </div>
     <div class="row">
