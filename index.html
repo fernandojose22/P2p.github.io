@@ -14,7 +14,7 @@
   --gb:rgba(255,255,255,.12);--gb2:rgba(255,255,255,.22);
   --cyan:#32ade6;--gold:#ff9f0a;--green:#30d158;--red:#ff453a;
   --text:rgba(255,255,255,.95);--dim:rgba(255,255,255,.50);--dim2:rgba(255,255,255,.25);
-  --r:14px;--r2:20px;--r3:26px;--rp:99px;
+  --r:18px;--r2:26px;--r3:32px;--rp:99px;
   --blur:blur(20px) saturate(180%) brightness(1.1);
   --blur-sm:blur(10px) saturate(150%);
   --s1:rgba(255,255,255,.07);--s2:rgba(255,255,255,.05);--s3:rgba(255,255,255,.10);
@@ -82,8 +82,27 @@ display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
 .tab .ti{font-size:20px;line-height:1.2}
 .tab.on{background:var(–g2);color:var(–cyan);border-color:var(–gb);
 backdrop-filter:var(–blur-sm);-webkit-backdrop-filter:var(–blur-sm)}
-.view{display:none}.view.on{display:block;animation:fadeUp .25s cubic-bezier(.34,1.56,.64,1)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view{display:none;position:relative}.view.on{display:block}
+.view.slide-in-right{animation:slideInRight .32s cubic-bezier(.25,.46,.45,.94) forwards}
+.view.slide-in-left{animation:slideInLeft .32s cubic-bezier(.25,.46,.45,.94) forwards}
+.view.slide-out-right{animation:slideOutRight .28s cubic-bezier(.55,0,1,.45) forwards}
+.view.slide-out-left{animation:slideOutLeft .28s cubic-bezier(.55,0,1,.45) forwards}
+@keyframes slideInRight{
+from{opacity:0;transform:translateX(48px)}
+to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{
+from{opacity:0;transform:translateX(-48px)}
+to{opacity:1;transform:translateX(0)}}
+@keyframes slideOutRight{
+from{opacity:1;transform:translateX(0)}
+to{opacity:0;transform:translateX(48px)}}
+@keyframes slideOutLeft{
+from{opacity:1;transform:translateX(0)}
+to{opacity:0;transform:translateX(-48px)}}
+/* Panel transitions inside calculadora */
+.panel{display:none;position:relative}.panel.on{display:block}
+.panel.pan-in-right{animation:slideInRight .28s cubic-bezier(.25,.46,.45,.94) forwards}
+.panel.pan-in-left{animation:slideInLeft .28s cubic-bezier(.25,.46,.45,.94) forwards}
 
 /* ── CARDS ── */
 .card{
@@ -2240,25 +2259,76 @@ function toggleHist() {
     arrow.innerHTML = '&#x25B6;';
   }
 }
+/* Tab order for directional slide */
+const TAB_ORDER = ['calc','bot','stats','chart'];
+let currentTab = 'calc';
+
 function goTab(id, el) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  if (id === currentTab) return;
+  const fromIdx = TAB_ORDER.indexOf(currentTab);
+  const toIdx   = TAB_ORDER.indexOf(id);
+  const goRight = toIdx > fromIdx;
+
+  const outClass = goRight ? 'slide-out-left'  : 'slide-out-right';
+  const inClass  = goRight ? 'slide-in-right'  : 'slide-in-left';
+
+  // Animate out the current view
+  const oldView = G('v-' + currentTab);
+  if (oldView) {
+    oldView.classList.add(outClass);
+    setTimeout(() => {
+      oldView.classList.remove('on', outClass);
+    }, 260);
+  }
+
+  // Animate in the new view
+  const newView = G('v-' + id);
+  if (newView) {
+    newView.classList.add('on', inClass);
+    // Remove animation class after it finishes
+    setTimeout(() => newView.classList.remove(inClass), 340);
+  }
+
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  G('v-' + id).classList.add('on'); el.classList.add('on');
+  el.classList.add('on');
+  currentTab = id;
+
   if (id === 'chart') { renderChips(); drawChart(); initChartEvents(); }
   if (id === 'stats') { renderStats(); }
   if (id === 'bot') {
-    if (!ST.bot.on) {
-      startBot();
-    } else {
-      // Bot already running — force immediate fresh cycle
-      runBotCycle();
-    }
+    if (!ST.bot.on) startBot();
+    else runBotCycle();
   }
 }
+
+/* Panel order for directional slide inside calculadora */
+const PANEL_ORDER = ['st','btc'];
+let currentPanel = 'st';
+
 function goPanel(id, el) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  if (id === currentPanel) return;
+  const fromIdx = PANEL_ORDER.indexOf(currentPanel);
+  const toIdx   = PANEL_ORDER.indexOf(id);
+  const goRight = toIdx > fromIdx;
+
+  const outClass = goRight ? 'slide-out-left'  : 'slide-out-right';
+  const inClass  = goRight ? 'pan-in-right'    : 'pan-in-left';
+
+  const oldPanel = G('p-' + currentPanel);
+  if (oldPanel) {
+    oldPanel.classList.add(outClass);
+    setTimeout(() => oldPanel.classList.remove('on', outClass), 260);
+  }
+
+  const newPanel = G('p-' + id);
+  if (newPanel) {
+    newPanel.classList.add('on', inClass);
+    setTimeout(() => newPanel.classList.remove(inClass), 300);
+  }
+
   document.querySelectorAll('.stab').forEach(t => t.classList.remove('on'));
-  G('p-' + id).classList.add('on'); el.classList.add('on');
+  el.classList.add('on');
+  currentPanel = id;
 }
 function setPair(pair, el) {
   ST.pair = pair;
