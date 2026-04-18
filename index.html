@@ -651,6 +651,7 @@ const ST = {
     minV:0, maxV:1, range:1,
     viewStart: 0,    // index of first visible candle
     viewCount: 60,   // how many candles visible
+    userPanned: false, // true when user has manually scrolled
     isDragging: false, lastX:0,
     pinchDist: 0,
   },
@@ -681,11 +682,13 @@ try {
   localStorage.removeItem('fp2p_h14_VES');
   localStorage.removeItem('fp2p_h15_PEN');
   localStorage.removeItem('fp2p_h15_VES');
+  localStorage.removeItem('fp2p_h16_PEN');
+  localStorage.removeItem('fp2p_h16_VES');
 } catch {}
 
 try {
-  ST.history.PEN = storageGet('fp2p_h16_PEN', []);
-  ST.history.VES = storageGet('fp2p_h16_VES', []);
+  ST.history.PEN = storageGet('fp2p_h17_PEN', []);
+  ST.history.VES = storageGet('fp2p_h17_VES', []);
 } catch {}
 
 /* ════════════════════════════════════════════════
@@ -721,8 +724,8 @@ ST.history.PEN = cleanOutliers(ST.history.PEN, 'PEN');
 ST.history.VES = cleanOutliers(ST.history.VES, 'VES');
 if (beforePEN !== ST.history.PEN.length || beforeVES !== ST.history.VES.length) {
   console.log(`Outliers limpiados: PEN ${beforePEN}->${ST.history.PEN.length}, VES ${beforeVES}->${ST.history.VES.length}`);
-  storageSet('fp2p_h16_PEN', ST.history.PEN);
-  storageSet('fp2p_h16_VES', ST.history.VES);
+  storageSet('fp2p_h17_PEN', ST.history.PEN);
+  storageSet('fp2p_h17_VES', ST.history.VES);
 }
 
 /* ════════════════════════════════════════════════
@@ -756,8 +759,8 @@ async function loadPricesJson() {
     ST.history.VES = mergeHistory(ST.history.VES, data.VES);
 
     // Persist merged result
-    storageSet('fp2p_h16_PEN', ST.history.PEN);
-    storageSet('fp2p_h16_VES', ST.history.VES);
+    storageSet('fp2p_h17_PEN', ST.history.PEN);
+    storageSet('fp2p_h17_VES', ST.history.VES);
 
     // Refresh chart if visible
     if (G('v-chart')?.classList.contains('on')) drawChart();
@@ -806,7 +809,7 @@ function hAdd(pair, t, v) {
   if (last && Math.abs(last.t - t) < 10 && last.v === v) return;
   a.push({ t, v });
   if (a.length > 15000) a.splice(0, a.length - 15000);
-  storageSet('fp2p_h16_' + pair, a);
+  storageSet('fp2p_h17_' + pair, a);
 }
 
 /* ════════════════════════════════════════════════
@@ -1613,14 +1616,16 @@ function drawChart() {
   if (candles.length < 1) { hint.style.display='flex'; return; }
   hint.style.display='none';
 
-  // Init view — show last 40-80 candles, auto-snap to end
+  // Init view — show last 40-80 candles, always snap to latest
   const c = ST.chart;
   const MIN_SLOTS = 40;
   const MAX_VIEW = 80;
   if (!c.viewCount || c.viewCount < MIN_SLOTS) c.viewCount = MIN_SLOTS;
   if (c.viewCount > MAX_VIEW) c.viewCount = MAX_VIEW;
-  // Always snap to latest candles on fresh draw (unless user panned)
-  if (c.viewStart === undefined || c.viewStart < 0 || c.viewStart > candles.length - c.viewCount) {
+  // Always snap to end (latest candles) unless user is actively dragging
+  if (!c.userPanned) {
+    c.viewStart = Math.max(0, candles.length - c.viewCount);
+  } else if (c.viewStart > candles.length - c.viewCount) {
     c.viewStart = Math.max(0, candles.length - c.viewCount);
   }
 
@@ -1844,6 +1849,7 @@ function initChartEvents() {
       const candleW = ST.chart.cW / ST.chart.viewCount;
       const shift = Math.round(-dx / candleW);
       ST.chart.viewStart = Math.max(0, ST.chart.viewStart + shift);
+      if (shift !== 0) ST.chart.userPanned = true;
       drawChart();
     } else {
       drawCrosshair(e.clientX - r.left, e.clientY - r.top);
@@ -1884,6 +1890,7 @@ function initChartEvents() {
       if (Math.abs(dx) > candleW * 0.5) {
         const shift = Math.round(-dx / candleW);
         ST.chart.viewStart = Math.max(0, Math.min((ST.chart.candles.length || 1) - 1, ST.chart.viewStart + shift));
+        if (shift !== 0) ST.chart.userPanned = true;
         drawChart();
       }
       const r = wrap.getBoundingClientRect();
@@ -1908,7 +1915,8 @@ function initChartEvents() {
     const now = Date.now();
     if (now - lastTap < 300) {
       ST.chart.viewCount = 80;
-      ST.chart.viewStart = Math.max(0, (ST.chart.candles.length || 0) - 60);
+      ST.chart.userPanned = false;
+      ST.chart.viewStart = Math.max(0, (ST.chart.candles.length || 0) - 80);
       drawChart();
     }
     lastTap = now;
@@ -1921,6 +1929,7 @@ function setTF(min, el) {
   el.classList.add('on');
   // Reset view to latest
   ST.chart.viewCount = 80;
+  ST.chart.userPanned = false;
   ST.chart.viewStart = -1; // will auto-snap to end
   clearCross();
   drawChart();
@@ -2194,6 +2203,7 @@ function goPanel(id, el) {
 }
 function setPair(pair, el) {
   ST.pair = pair;
+  ST.chart.userPanned = false;
   document.querySelectorAll('#pair-pills .pill').forEach(t => t.classList.remove('on'));
   el.classList.add('on'); clearCross(); renderChips(); drawChart();
 }
