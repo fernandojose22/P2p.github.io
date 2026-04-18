@@ -692,17 +692,23 @@ try {
    LIMPIEZA RETROACTIVA DE OUTLIERS (corre 1 vez al cargar)
    Elimina picos anomalos que ya estaban guardados en el historial
 ════════════════════════════════════════════════ */
-function cleanOutliers(arr) {
-  if (arr.length < 10) return arr;
+function cleanOutliers(arr, pair) {
+  if (arr.length < 3) return arr;
+  // Hardcoded sanity ranges
+  const ranges = { PEN: [2.0, 8.0], VES: [30, 900] };
+  const [lo, hi] = ranges[pair] || [0, Infinity];
+
   const cleaned = [];
   for (let i = 0; i < arr.length; i++) {
     const p = arr[i];
-    // Comparar contra ventana movil de los ultimos 10 puntos limpios
+    // Sanity range check
+    if (p.v < lo || p.v > hi) continue;
+    // Moving window check
     const window = cleaned.slice(-10);
-    if (window.length >= 5) {
+    if (window.length >= 3) {
       const avg = window.reduce((s, x) => s + x.v, 0) / window.length;
       const dev = Math.abs(p.v - avg) / avg;
-      if (dev > 0.05) continue; // descartar
+      if (dev > 0.05) continue;
     }
     cleaned.push(p);
   }
@@ -711,8 +717,8 @@ function cleanOutliers(arr) {
 
 const beforePEN = ST.history.PEN.length;
 const beforeVES = ST.history.VES.length;
-ST.history.PEN = cleanOutliers(ST.history.PEN);
-ST.history.VES = cleanOutliers(ST.history.VES);
+ST.history.PEN = cleanOutliers(ST.history.PEN, 'PEN');
+ST.history.VES = cleanOutliers(ST.history.VES, 'VES');
 if (beforePEN !== ST.history.PEN.length || beforeVES !== ST.history.VES.length) {
   console.log(`Outliers limpiados: PEN ${beforePEN}->${ST.history.PEN.length}, VES ${beforeVES}->${ST.history.VES.length}`);
   storageSet('fp2p_h16_PEN', ST.history.PEN);
@@ -773,17 +779,27 @@ function hAdd(pair, t, v) {
   if (!ST.history[pair]) ST.history[pair] = [];
   const a = ST.history[pair];
 
-  // ── FILTRO ANTI-OUTLIER ──────────────────────────
-  // Si tenemos al menos 5 puntos recientes, comparar contra el promedio
-  // Descartar cualquier precio que se desvie mas del 5% del promedio reciente
-  if (a.length >= 5) {
+  // ── FILTRO ANTI-OUTLIER (3 capas) ─────────────────
+
+  // CAPA 1: Rangos de sentido comun (hardcoded)
+  // PEN/USDT tipicamente entre 2.5 y 6.0
+  // VES/USDT tipicamente entre 50 y 900
+  if (pair === 'PEN' && (v < 2.0 || v > 8.0)) return;
+  if (pair === 'VES' && (v < 30 || v > 900)) return;
+
+  // CAPA 2: Comparar contra el ticker actual (si existe)
+  const tickerVal = ST.p2p?.[pair];
+  if (tickerVal && tickerVal > 0) {
+    const devTicker = Math.abs(v - tickerVal) / tickerVal;
+    if (devTicker > 0.05) return;
+  }
+
+  // CAPA 3: Comparar contra promedio de ultimos 10 puntos
+  if (a.length >= 3) {
     const recent = a.slice(-10);
     const avg = recent.reduce((s, p) => s + p.v, 0) / recent.length;
     const deviation = Math.abs(v - avg) / avg;
-    if (deviation > 0.05) {
-      console.warn(`Outlier descartado en ${pair}: ${v} (promedio reciente ${avg.toFixed(3)}, desviacion ${(deviation*100).toFixed(1)}%)`);
-      return;
-    }
+    if (deviation > 0.05) return;
   }
 
   const last = a[a.length - 1];
@@ -1583,13 +1599,16 @@ function drawChart() {
   if (candles.length < 1) { hint.style.display='flex'; return; }
   hint.style.display='none';
 
-  // Init view if needed — always show at least 40 slots for breathing room
+  // Init view — show last 40-80 candles, auto-snap to end
   const c = ST.chart;
   const MIN_SLOTS = 40;
-  if (!c.viewCount || c.viewCount < 5) c.viewCount = Math.max(MIN_SLOTS, Math.min(80, candles.length));
-  c.viewCount = Math.max(MIN_SLOTS, Math.min(c.viewCount, Math.max(MIN_SLOTS, candles.length)));
-  if (c.viewStart === undefined || c.viewStart < 0) c.viewStart = Math.max(0, candles.length - c.viewCount);
-  c.viewStart = Math.max(0, Math.min(c.viewStart, Math.max(0, candles.length - c.viewCount)));
+  const MAX_VIEW = 80;
+  if (!c.viewCount || c.viewCount < MIN_SLOTS) c.viewCount = MIN_SLOTS;
+  if (c.viewCount > MAX_VIEW) c.viewCount = MAX_VIEW;
+  // Always snap to latest candles on fresh draw (unless user panned)
+  if (c.viewStart === undefined || c.viewStart < 0 || c.viewStart > candles.length - c.viewCount) {
+    c.viewStart = Math.max(0, candles.length - c.viewCount);
+  }
 
   const visible = candles.slice(c.viewStart, c.viewStart + c.viewCount);
   // Pad visible array with empty slots on the right if we have fewer real candles than slots
