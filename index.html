@@ -853,7 +853,7 @@ async function refreshP2P() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           asset: 'USDT', fiat, tradeType: 'SELL',
-          page: 1, rows: 1, payTypes: [],
+          page: 1, rows: 10, payTypes: [],
           publisherType: null, merchantCheck: false,
           transAmount: '',
         }),
@@ -863,7 +863,21 @@ async function refreshP2P() {
       if (!r.ok) return null;
       const d = await r.json();
       if (d?.code !== '000000' || !d?.data?.length) return null;
-      return parseFloat(d.data[0]?.adv?.price ?? 0) || null;
+
+      // Extract all prices, sort, take median to avoid outliers
+      const prices = d.data
+        .map(ad => parseFloat(ad?.adv?.price ?? 0))
+        .filter(p => p > 0)
+        .sort((a, b) => a - b);
+      if (prices.length === 0) return null;
+
+      // Median = the middle value (immune to outliers at top or bottom)
+      const mid = Math.floor(prices.length / 2);
+      const median = prices.length % 2 === 0
+        ? (prices[mid - 1] + prices[mid]) / 2
+        : prices[mid];
+
+      return median;
     } catch { return null; }
   }
 
