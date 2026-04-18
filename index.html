@@ -9,29 +9,39 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#08080f;
-  --g1:rgba(255,255,255,.06);--g2:rgba(255,255,255,.09);--g3:rgba(255,255,255,.13);
-  --gb:rgba(255,255,255,.10);--gb2:rgba(255,255,255,.18);
+  --bg:#070a12;
+  --g1:rgba(255,255,255,.07);--g2:rgba(255,255,255,.10);--g3:rgba(255,255,255,.15);
+  --gb:rgba(255,255,255,.12);--gb2:rgba(255,255,255,.22);
   --cyan:#32ade6;--gold:#ff9f0a;--green:#30d158;--red:#ff453a;
-  --text:rgba(255,255,255,.92);--dim:rgba(255,255,255,.45);--dim2:rgba(255,255,255,.20);
-  --r:16px;--r2:22px;--r3:28px;--rp:99px;
-  --blur:blur(24px) saturate(160%);--blur-sm:blur(12px) saturate(140%);
-  /* legacy aliases for JS that uses these */
-  --s1:rgba(255,255,255,.06);--s2:rgba(255,255,255,.04);--s3:rgba(255,255,255,.09);
-  --br:rgba(255,255,255,.10);--br2:rgba(255,255,255,.15);
+  --text:rgba(255,255,255,.95);--dim:rgba(255,255,255,.50);--dim2:rgba(255,255,255,.25);
+  --r:14px;--r2:20px;--r3:26px;--rp:99px;
+  --blur:blur(20px) saturate(180%) brightness(1.1);
+  --blur-sm:blur(10px) saturate(150%);
+  --s1:rgba(255,255,255,.07);--s2:rgba(255,255,255,.05);--s3:rgba(255,255,255,.10);
+  --br:rgba(255,255,255,.12);--br2:rgba(255,255,255,.20);
 }
 html,body{min-height:100%;background:var(--bg);color:var(--text);
-  font-family:-apple-system,'SF Pro Display','IBM Plex Sans',sans-serif;overflow-x:hidden}
+  font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;overflow-x:hidden}
+/* Rich ambient mesh background - essential for glass effect */
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background:
-    radial-gradient(ellipse 60% 40% at 15% 10%,rgba(50,173,230,.09),transparent 60%),
-    radial-gradient(ellipse 50% 50% at 85% 85%,rgba(255,159,10,.07),transparent 55%),
-    radial-gradient(ellipse 35% 55% at 50% 50%,rgba(48,209,88,.03),transparent 70%)}
+    radial-gradient(ellipse 80% 55% at 0% 0%,#0e2a4a 0%,transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 0%,#1a1a0a 0%,transparent 50%),
+    radial-gradient(ellipse 70% 60% at 50% 100%,#0a1e2e 0%,transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 40%,rgba(50,173,230,.12) 0%,transparent 50%),
+    radial-gradient(ellipse 35% 45% at 20% 70%,rgba(48,209,88,.06) 0%,transparent 50%),
+    radial-gradient(ellipse 50% 35% at 60% 20%,rgba(255,159,10,.05) 0%,transparent 50%)
+}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.4}
 
 /* ── TICKER ── */
-#ticker{position:sticky;top:0;z-index:200;background:rgba(8,8,15,.78);
+#ticker{position:sticky;top:0;z-index:200;
+background:rgba(7,10,18,.82);
 backdrop-filter:var(–blur);-webkit-backdrop-filter:var(–blur);
-border-bottom:1px solid var(–gb);
+border-bottom:1px solid rgba(255,255,255,.10);
+box-shadow:0 1px 0 rgba(255,255,255,.06);
 display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;height:62px}
 #ticker::-webkit-scrollbar{display:none}
 .tk{display:flex;flex-direction:column;justify-content:center;
@@ -59,8 +69,11 @@ backdrop-filter:var(–blur-sm);-webkit-backdrop-filter:var(–blur-sm)}
 /* ── TABS (bottom, iOS style) ── */
 .tabs{position:fixed;bottom:0;left:0;right:0;display:flex;
 padding:10px 12px max(14px,env(safe-area-inset-bottom));
-background:rgba(8,8,15,.82);backdrop-filter:var(–blur);-webkit-backdrop-filter:var(–blur);
-border-top:1px solid var(–gb);z-index:200;gap:4px}
+background:rgba(7,10,18,.85);
+backdrop-filter:var(–blur);-webkit-backdrop-filter:var(–blur);
+border-top:1px solid rgba(255,255,255,.10);
+box-shadow:0 -1px 0 rgba(255,255,255,.06);
+z-index:200;gap:4px}
 .tab{flex:1;padding:8px 4px 6px;border-radius:var(–r3);border:1px solid transparent;
 background:transparent;color:var(–dim);font-family:inherit;
 font-size:10px;font-weight:600;cursor:pointer;
@@ -73,8 +86,13 @@ backdrop-filter:var(–blur-sm);-webkit-backdrop-filter:var(–blur-sm)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* ── CARDS ── */
-.card{background:var(–g1);backdrop-filter:var(–blur);-webkit-backdrop-filter:var(–blur);
-border:1px solid var(–gb);border-radius:var(–r2);padding:16px;margin-bottom:12px}
+.card{
+background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.04));
+backdrop-filter:var(–blur);-webkit-backdrop-filter:var(–blur);
+border:1px solid rgba(255,255,255,.14);
+border-top:1px solid rgba(255,255,255,.20);
+border-radius:var(–r2);padding:16px;margin-bottom:12px;
+box-shadow:0 8px 32px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08)}
 .ctitle{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(–dim);
 text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .ctitle::before{content:’’;width:3px;height:12px;border-radius:2px;
@@ -84,18 +102,30 @@ background:linear-gradient(180deg,var(–cyan),rgba(50,173,230,.3));flex-shrink:
 .row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:80px}
 .field label{font-size:9px;font-weight:600;letter-spacing:.07em;color:var(–dim);text-transform:uppercase}
-.field input,.field select{background:var(–g2);border:1px solid var(–gb);border-radius:var(–r);
-color:var(–text);font-size:14px;padding:11px 13px;outline:none;width:100%;
--webkit-appearance:none;appearance:none;transition:all .2s;
+.field input,.field select{
+background:rgba(255,255,255,.08) !important;
+border:1px solid rgba(255,255,255,.14);border-radius:var(–r);
+color:rgba(255,255,255,.95) !important;font-size:14px;padding:11px 13px;
+outline:none;width:100%;-webkit-appearance:none;appearance:none;transition:all .2s;
 backdrop-filter:var(–blur-sm);-webkit-backdrop-filter:var(–blur-sm)}
-.field input:focus,.field select:focus{border-color:rgba(50,173,230,.5);background:var(–g3);
-box-shadow:0 0 0 3px rgba(50,173,230,.08)}
+.field input:focus,.field select:focus{
+border-color:rgba(50,173,230,.55);
+background:rgba(50,173,230,.08) !important;
+box-shadow:0 0 0 3px rgba(50,173,230,.10)}
+/* Kill browser autofill yellow */
+input:-webkit-autofill,input:-webkit-autofill:focus{
+-webkit-box-shadow:0 0 0 1000px rgba(20,30,50,.9) inset !important;
+-webkit-text-fill-color:rgba(255,255,255,.95) !important}
 .field input::placeholder{color:var(–dim2)}
 .field select option{background:#14141e}
-.stabs{display:flex;gap:4px;margin-bottom:14px}
-.stab{flex:1;padding:9px 4px;border-radius:var(–r);border:1px solid var(–gb);
-background:var(–g1);color:var(–dim);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s}
-.stab.on{background:rgba(50,173,230,.12);color:var(–cyan);border-color:rgba(50,173,230,.30)}
+.stabs{display:flex;gap:4px;margin-bottom:14px;
+background:rgba(255,255,255,.06);border-radius:var(–r2);padding:4px;
+border:1px solid rgba(255,255,255,.10)}
+.stab{flex:1;padding:9px 4px;border-radius:var(–r);border:1px solid transparent;
+background:transparent;color:var(–dim);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:all .25s}
+.stab.on{background:rgba(255,255,255,.12);color:var(–text);border-color:rgba(255,255,255,.18);
+backdrop-filter:var(–blur-sm);-webkit-backdrop-filter:var(–blur-sm);
+box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .panel{display:none}.panel.on{display:block}
 .note{font-size:9px;color:var(–dim);background:rgba(255,159,10,.05);border:1px solid rgba(255,159,10,.15);
 border-radius:var(–r);padding:10px 13px;margin-bottom:12px;line-height:1.8}
@@ -130,7 +160,8 @@ border-radius:99px;transition:width .1s linear;width:100%}
 #cd-txt{font-size:9px;color:var(–dim);min-width:36px;text-align:right}
 .opp-card{border-radius:var(–r2);padding:16px;margin-bottom:10px;border:1px solid;
 animation:sIn .28s cubic-bezier(.34,1.56,.64,1);
-backdrop-filter:var(–blur);-webkit-backdrop-filter:var(–blur)}
+backdrop-filter:var(–blur);-webkit-backdrop-filter:var(–blur);
+box-shadow:0 8px 32px rgba(0,0,0,.3)}
 @keyframes sIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 .opp-card.verde{background:linear-gradient(135deg,rgba(48,209,88,.08),rgba(50,173,230,.04));border-color:rgba(48,209,88,.25)}
 .opp-card.rojo{background:linear-gradient(135deg,rgba(255,69,58,.08),rgba(255,159,10,.04));border-color:rgba(255,69,58,.25)}
